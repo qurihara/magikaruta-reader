@@ -1,44 +1,116 @@
 // ==========================
 // config.js
 // ==========================
-// まじかるた読み上げアプリの定数を、この1か所にまとめる。
+// まじかるた読み上げアプリの定数を、この1か所にまとめる。公開版（index.html）と実験用のページ（lab.html）の両方が読む。
 // 版の数字（APP_VERSION）もここだけで管理する。直したら必ず上げ、README の変更履歴に1行書く。
 // このファイルはブラウザと node --test の両方から読み込むので、DOM に触れない。
 // ==========================
 
-export const APP_VERSION = "0.1.0";
+export const APP_VERSION = "0.2.0";
 
-// localStorage の鍵の接頭辞。形式を変えたら末尾の版を上げる。
-export const STORAGE_PREFIX = "majikaruta-reader:v1:";
+// --------------------------
+// 電子音の間隔 t
+// --------------------------
 
-// 中山ワークショップの実験で使う電子音の間隔 t の5水準（秒）。
-// 隣り合う水準の比が2倍の等比の並びである。
+// 電子音の間隔 t の5水準（秒）。隣り合う水準の比が2倍の等比の並びである。
 export const T_LEVELS = [0.1, 0.2, 0.4, 0.8, 1.6];
 
-// 任意の値として受け付ける t の範囲（秒）。
+// 手で指定する t として受け付ける範囲（秒）。実験用のページの設定と手動の指定で使う。
 export const T_MIN = 0.05;
 export const T_MAX = 3.0;
 
-// 現行の公式アプリ（unityroom の magikaruta）の電子音の間隔は、公開されている資料からは分からなかった。
-// そのため、既定の t は 0.4 秒とする（README と報告に記した）。
-export const DEFAULT_SETTINGS = {
-  maxValue: 12,        // 読む値の範囲は 1〜maxValue。トランプの A〜K に合わせて 13 まで
-  kinds: 1,            // 札の種類の数（1〜4）。同じ値が種類の数だけある
-  blankRule: false,    // 空札のルールで遊ぶかどうか。読みには影響せず、記録と説明に使う
-  tMode: "fixed",      // "fixed"（決めた t）または "random"（ゲームごとに5水準から無作為）
-  tSec: 0.4,           // 電子音の間隔（秒）。tMode が "fixed" のときに使う
-  prepGapSec: 1.0,     // 準備音の鳴り始めから最初の電子音の鳴り始めまでの間（秒）
-  volume: 0.7,         // 音量（0〜1）
-  flash: false,        // 音に合わせて画面を点滅させるかどうか
-  flashKindColor: true,// 最後の点滅を種類の色にするかどうか（種類が2つ以上のとき）
-  flashOffsetMs: 0,    // 点滅を音より遅らせる量（ミリ秒）。外付けのスピーカの遅れに合わせる
-  bigInfo: false,      // ゲームの番号と t を大きく表示するかどうか
-  label: "",           // 記録に付ける見出し（会場や端末の名前）
+// 公開版で t の5水準に添える、速さの言葉。
+export const SPEED_WORDS = {
+  0.1: "とても速い",
+  0.2: "速い",
+  0.4: "ふつう",
+  0.8: "ゆっくり",
+  1.6: "とてもゆっくり",
 };
 
-export const MAX_VALUE_MIN = 2;
-export const MAX_VALUE_MAX = 13;
-export const KINDS_MAX = 4;
+// 準備音の鳴り始めから最初の電子音の鳴り始めまでの間（秒）。公開版はこの値に固定する。
+export const PREP_GAP_SEC = 1.0;
+
+// --------------------------
+// 公開版
+// --------------------------
+
+// 公開版の localStorage の鍵の接頭辞。公開版は設定（ルールと間隔）だけを保存する。
+export const STORAGE_PREFIX = "majikaruta-reader:v2:";
+// v0.1.0 が使っていた鍵の接頭辞。公開版を開いたときに、記録などの古い鍵を消す。
+export const LEGACY_STORAGE_PREFIX = "majikaruta-reader:v1:";
+
+// 公開版のルール。値の範囲と札の種類の数を、ここで決める。
+// 赤と黒は「ほかの遊び方」として目立たない位置に置く（other: true）。
+export const RULES = {
+  standard: {
+    key: "standard",
+    name: "いつものルール",
+    maxValue: 12,
+    kinds: 1,
+    blank: false,
+    summary: "1〜12 の12枚・空札なし",
+  },
+  blank: {
+    key: "blank",
+    name: "空札あり",
+    maxValue: 13,
+    kinds: 1,
+    blank: true,
+    summary: "1〜13 を読む・6枚ずつ配り、1枚は空札",
+  },
+  redblack: {
+    key: "redblack",
+    name: "赤と黒",
+    maxValue: 6,
+    kinds: 2,
+    blank: false,
+    other: true,
+    summary: "赤の1〜6と黒の1〜6の12枚・最後の音の高さで色を伝える",
+  },
+};
+export const RULE_KEYS = ["standard", "blank", "redblack"];
+
+export const DEFAULT_PUBLIC_SETTINGS = {
+  rule: "standard",
+  tSec: 0.4,
+};
+
+// --------------------------
+// 実験用のページ
+// --------------------------
+
+// 実験用のページの状態の形式の名前。書き出した JSON にも入れ、読み込むときに照らし合わせる。
+export const LAB_SCHEMA = "majikaruta-lab/1";
+
+// 実験用のページの状態を保存する IndexedDB の名前。IndexedDB が使えないときだけ localStorage の鍵を使う。
+export const LAB_DB = { name: "majikaruta-lab", store: "kv", key: "state" };
+export const LAB_LOCAL_KEY = "majikaruta-lab:v1:state";
+
+// 2人に配る枚数。空札なしは 1〜12 を6枚ずつ、空札ありは 1〜13 から6枚ずつ配り、残りの1枚が空札になる。
+export const DEAL_PER_PLAYER = 6;
+
+// 同時に遊ぶ組（卓）の数の上限。
+export const TABLE_COUNT_MAX = 4;
+
+// 空札のルールの説明の既定の文。お手つきの罰はまだ決まっていないので、設定で書き換えられるようにする。
+export const DEFAULT_BLANK_RULE_TEXT = "空札が読まれたら、どの札にも触れません。触れたらお手つきで、相手から 1 枚送られます";
+
+export const LAB_DEFAULT_CONFIG = {
+  tLevels: [0.1, 0.2, 0.4, 0.8, 1.6], // 条件の t の水準（秒）
+  blankLevels: [false, true],         // 条件の空札の有無の水準
+  prepGapSec: 1.0,                    // 準備音から最初の電子音までの間（秒）
+  volume: 0.7,                        // 音量（0〜1）
+  flash: true,                        // 読んでいる間、画面を黒くして音の時刻に光らせるかどうか
+  flashOffsetMs: 0,                   // 点滅を音より遅らせる量（ミリ秒）。外付けのスピーカの遅れに合わせる
+  tableCount: 4,                      // 同時に遊ぶ組（卓）の数（1〜4）
+  label: "",                          // 記録に付ける見出し（会場や日付）
+  blankRuleText: DEFAULT_BLANK_RULE_TEXT,
+};
+
+// --------------------------
+// 音
+// --------------------------
 
 // 電子音の高さと長さ。
 // 通常の音と、種類が1つのときの最後の音は、同じ案件の収集Bのアプリ（collection-b-app）と同じ高さにそろえた。
@@ -48,31 +120,30 @@ export const AUDIO = {
   prepHz: 523.25,          // 準備音（ド。三角波で柔らかくする）
   prepDurationSec: 0.22,   // 準備音の長さ
   maxToneDurationSec: 0.08,// 通常の音の長さの上限。実際の長さは min(t/2, この値)
-  lastDurationSec: 0.22,   // 最後の音の長さ。種類を聞き分けやすいように通常の音より長くする
+  lastDurationSec: 0.22,   // 最後の音の長さ。色を聞き分けやすいように通常の音より長くする
   attackSec: 0.005,        // 立ち上がりの傾斜（クリック音を避ける）
   releaseSec: 0.012,       // 減衰の傾斜
   leadSec: 0.12,           // ボタンを押してから準備音までの余白（予約が過去にならないように）
 };
 
-// 札の種類。最後の音を「高さ（高・低）」と「音色（澄んだ正弦波・ざらついた矩形波）」の2つの性質の組み合わせで区別する。
-// 種類が2つなら高さだけが違い、3つと4つでは音色も使う。
-// 赤の札は高い音、黒の札は低い音にそろえ、トランプの4つの印に対応させた。
-// 点滅の色は、遠くのカメラでも見分けやすいように、色相が大きく離れた鮮やかな色にした。
-// 黒の札は黒では点滅させられないので、藍の青で点滅させる。
-// 画面での呼び名は、種類が2つなら「赤」「黒」、3つ以上ならトランプの印（♥ハートなど）にする（core.js の kindLabel）。
+// 札の種類。公開版の「赤と黒」で使う。種類が1つのルールでは、最後の音は赤（高い音）の定義を使う。
+// 赤の札は通常の音の1オクターブ上、黒の札は1オクターブ下で終わる。
+// color はカメラ用の点滅の色、ink は画面の文字の色である。黒の札は黒では点滅させられないので、藍の青で点滅させる。
 export const KIND_DEFS = [
-  { key: "heart",   name: "赤", suit: "♥", suitName: "ハート", lastHz: 1760, wave: "sine",   gainScale: 1.0, color: "#ff2a12", ink: "#c8321e" },
-  { key: "spade",   name: "黒", suit: "♠", suitName: "スペード", lastHz: 440, wave: "sine",   gainScale: 1.0, color: "#1e50ff", ink: "#2b2723" },
-  { key: "diamond", name: "ダイヤ", suit: "♦", suitName: "ダイヤ", lastHz: 1760, wave: "square", gainScale: 0.35, color: "#ffc400", ink: "#b8860b" },
-  { key: "club",    name: "クラブ", suit: "♣", suitName: "クラブ", lastHz: 440, wave: "square", gainScale: 0.35, color: "#12b04a", ink: "#1f6b3c" },
+  { key: "red",   name: "赤", lastHz: 1760, wave: "sine", gainScale: 1.0, color: "#ff2a12", ink: "#c8321e" },
+  { key: "black", name: "黒", lastHz: 440,  wave: "sine", gainScale: 1.0, color: "#1e50ff", ink: "#2b2723" },
 ];
 
-// 点滅の色。夜の黒い地の上で光らせる。
+// --------------------------
+// 点滅
+// --------------------------
+
+// 実験用のページのカメラ用の点滅の色。黒い地の上で光らせる。
 export const FLASH = {
   baseColor: "#000000",   // 読んでいる間の地の色
   prepColor: "#8c8c8c",   // 準備音の点滅（灰色。明るさで通常の音と区別する）
   toneColor: "#ffffff",   // 通常の音の点滅（白）
-  lastColor: "#ff2a12",   // 種類が1つのとき（または種類の色を使わないとき）の最後の音の点滅（朱）
+  lastColor: "#ff2a12",   // 最後の音の点滅（朱）
   maxToneFlashSec: 0.1,   // 通常の音の点滅の長さの上限。実際の長さは min(t/2, この値)
   prepFlashSec: 0.15,
   lastFlashSec: 0.35,
@@ -85,3 +156,6 @@ export const AFTER_READ_SEC = 0.35;
 export const REVEAL_HOLD_MS = 900;
 // 答えを表示しておく時間（ミリ秒）。画面を触れば早く消せる。
 export const REVEAL_SHOW_MS = 8000;
+
+// 実験用のページで、重い操作の2回目の押下を待つ時間（ミリ秒）。この間に2回目を押さなければ元に戻る。
+export const ARM_MS = 4000;

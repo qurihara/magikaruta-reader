@@ -5,8 +5,9 @@
    - 地は生成りの和紙。細かい繊維の模様を SVG のノイズで重ねる。
    - 文字は墨。見出しと数字は明朝（しっぽり明朝 B1）、操作の文字は角ゴシック（Zen 角ゴシック New）。
    - 「読む」のボタンは取り札の形にし、縁を常磐色（取り札の裏の緑）にした。
-   - 最後の音の色は朱。点滅の色は config.js の FLASH と KIND_DEFS で決める。
+   - 最後の音の色は朱。公開版の札の光り方はこのファイルの .read-glow、実験用のページのカメラ用の点滅の色は config.js の FLASH で決める。
    暗い画面では、地を墨、文字を生成りにする。
+   公開版（index.html）と実験用のページ（lab.html）の両方が読む。実験用のページだけの見た目は lab.css にある。
    ========================== */
 
 :root {
@@ -212,18 +213,11 @@ button:disabled { opacity: .45; }
 .plate-unit { font-size: .45em; margin-left: .2em; font-family: var(--gothic); font-weight: 500; color: var(--ink-soft); }
 .plate-rule { grid-column: 1 / -1; margin: 4px 0 0; font-size: .85rem; color: var(--ink-soft); letter-spacing: .05em; }
 
-/* 大きく表示する（天井カメラ用）。 */
-.big-info .plate { padding: 14px 16px; flex: 1 1 auto; align-content: center; }
-/* 数字の大きさは札の欄の幅に合わせる（cqi に対応しない古いブラウザでは vw の値を使う）。 */
-.plate-cell { container-type: inline-size; }
-.big-info .plate-val { font-size: clamp(2.8rem, 17vw, 9rem); font-size: min(46cqi, 10rem); line-height: 1; }
-.big-info .plate-unit { display: none; }
-.key-unit { display: none; }
-.big-info .key-unit { display: inline; }
-.big-info .plate-key { font-size: clamp(.9rem, 3.6vw, 1.3rem); font-weight: 700; color: var(--ink); }
-.big-info .plate-rule { font-size: clamp(.9rem, 3.4vw, 1.2rem); }
-.big-info .slots { display: none; }
-.big-info .progress { flex: none; }
+/* 公開版の札（ルールと速さ）。押すと「ルールと速さ」を開く。 */
+.plate-public { width: 100%; text-align: left; color: var(--ink); font: inherit; align-items: stretch; }
+.plate-public:active { transform: translateY(1px); }
+.plate-name { font-family: var(--mincho); font-weight: 800; font-size: 1.45rem; line-height: 1.25; white-space: nowrap; }
+.plate-note { font-size: .8rem; color: var(--ink-soft); line-height: 1.4; }
 
 /* ---------- 読んだ札 ---------- */
 .progress { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; gap: 10px; min-height: 0; }
@@ -240,7 +234,6 @@ button:disabled { opacity: .45; }
   background: var(--card);
   transition: background-color .25s, border-color .25s, transform .25s;
 }
-.slots.dense i { width: 14px; height: 20px; gap: 4px; }
 .slots i.done { background: var(--tokiwa); border-color: var(--tokiwa); }
 .slots i.now { border-color: var(--shu); background: var(--shu-soft); animation: breathe 1.2s ease-in-out infinite; }
 @keyframes breathe { 50% { transform: translateY(-3px); } }
@@ -276,6 +269,22 @@ button:disabled { opacity: .45; }
   -webkit-user-select: none;
 }
 .read-card:active:not(:disabled) { transform: translateY(2px) scale(.995); }
+/* 音に合わせて札をほのかに光らせる（公開版）。印は app.js が data-glow に入れる。 */
+.read-glow {
+  position: absolute;
+  inset: 12px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  background: var(--glow, transparent);
+  transition: opacity .06s linear;
+}
+.read-card[data-glow] .read-glow { opacity: 1; transition: none; }
+.read-card[data-glow="prep"] { --glow: color-mix(in srgb, var(--ink-soft) 16%, transparent); }
+.read-card[data-glow="tone"] { --glow: color-mix(in srgb, var(--gold) 30%, transparent); }
+.read-card[data-glow="last"], .read-card[data-glow="last-red"] { --glow: color-mix(in srgb, var(--shu) 34%, transparent); }
+.read-card[data-glow="last-black"] { --glow: color-mix(in srgb, #1e3a8a 34%, transparent); }
+.read-label, .read-sub { position: relative; }
 .read-label { font-family: var(--mincho); font-weight: 800; font-size: clamp(3rem, 16vw, 5.2rem); line-height: 1; letter-spacing: .12em; text-indent: .12em; }
 .read-sub { font-size: .95rem; color: var(--ink-soft); letter-spacing: .1em; }
 .read-card.is-reading { opacity: 1; }
@@ -316,13 +325,6 @@ button:disabled { opacity: .45; }
 
 .foot { display: flex; justify-content: flex-end; }
 .version { font-size: .72rem; color: var(--ink-soft); letter-spacing: .08em; font-variant-numeric: tabular-nums; }
-
-/* ---------- 点滅 ---------- */
-.flash { position: fixed; inset: 0; z-index: 50; background: #000; }
-/* 点滅の間も、ゲームの番号と t の札は前に出す（カメラで読めるように）。 */
-.is-flashing .plate { z-index: 60; background: #f6f0e2; color: #1d1915; border-color: #f6f0e2; }
-.is-flashing .plate .plate-key, .is-flashing .plate .plate-unit, .is-flashing .plate .plate-rule { color: #4a4238; }
-.is-flashing .plate-cell + .plate-cell { border-left-color: #cfc3a8; }
 
 /* ---------- 答えの表示 ---------- */
 .reveal {
@@ -437,6 +439,21 @@ input[type="range"] { accent-color: var(--tokiwa); }
 .seg input:focus-visible + span { outline: 3px solid var(--gold); outline-offset: 2px; }
 .seg-wrap { margin: 4px 0 6px; }
 .log-list { margin: 8px 0 0; padding-left: 1.4em; font-size: .82rem; color: var(--ink-soft); }
+
+/* 公開版のルールの選び方 */
+.rule-choices { display: grid; gap: 8px; }
+.rule-choice { display: flex; align-items: flex-start; gap: .7em; padding: .7em .9em; border: 1px solid var(--line); border-radius: 10px; background: var(--card); cursor: pointer; }
+.rule-choice input { margin-top: .3em; width: 1.15em; height: 1.15em; accent-color: var(--tokiwa); flex: none; }
+.rule-choice b { display: block; font-family: var(--mincho); font-weight: 800; font-size: 1.05rem; }
+.rule-choice small { display: block; color: var(--ink-soft); font-size: .84rem; }
+.rule-choice:has(input:checked) { border-color: var(--tokiwa); box-shadow: inset 0 0 0 1px var(--tokiwa); }
+.other-rules { margin-top: 12px; }
+.other-rules summary { cursor: pointer; color: var(--ink-soft); font-size: .9rem; padding: .3em 0; }
+.other-rules .rule-choice { margin-top: 6px; }
+.speed-seg span { flex-direction: column; min-width: 4.6em; padding: .35em .6em; line-height: 1.2; }
+.speed-seg b { font-weight: 700; font-size: .9rem; }
+.speed-seg small { font-size: .75rem; opacity: .8; }
+.speed-legend { padding-left: 1.4em; }
 
 @media (prefers-reduced-motion: reduce) {
   .slots i.now, .read-card.is-reading::after { animation: none; }

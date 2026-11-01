@@ -2,7 +2,7 @@
 // audio.js
 // ==========================
 // Web Audio で電子音を作る。1回の読みのすべての音を、ボタンを押した時点で AudioContext の時刻で予約する。
-// setTimeout では鳴らさないので、端末が忙しくても音の間隔はずれない。
+// setTimeout では鳴らさないので、端末が忙しくても音の間隔はずれない。公開版と実験用のページの両方が使う。
 // 同じ案件の収集Bのアプリ（collection-b-app/js/audio.js）の予約の仕方を流用した。
 // ==========================
 
@@ -50,6 +50,11 @@ export async function unlockAudio() {
 
 export function audioState() {
   return ctx ? ctx.state : "none";
+}
+
+// いまの AudioContext の時刻（秒）。読みを途中で止めたときに、どの音まで鳴ったかを決めるのに使う。
+export function currentCtxTime() {
+  return ctx ? ctx.currentTime : null;
 }
 
 export function setVolume(v) {
@@ -106,7 +111,9 @@ export function scheduleRead({ count, kind, tSec, prepGapSec }) {
   for (const e of events) playEvent(c, e, kind);
   return {
     events,
-    base: { perfNow, ctxNow, epochNow },
+    // timeOrigin は performance.now の原点（ページを開いた時刻、Date.now の時間軸）。
+    // 再読み込みのたびに performance.now の原点が変わるので、読みごとに残して時間軸をつなげられるようにする。
+    base: { perfNow, ctxNow, epochNow, timeOrigin: performance.timeOrigin },
     outputLatencySec: typeof c.outputLatency === "number" ? c.outputLatency : null,
     baseLatencySec: typeof c.baseLatency === "number" ? c.baseLatency : null,
     sampleRate: c.sampleRate,
@@ -119,7 +126,7 @@ export function stopAll() {
   live = [];
 }
 
-// 音の確認。準備音、通常の音2回、最後の音（種類ごと）を順に鳴らす。
+// 音の確認。準備音、通常の音2回、最後の音（種類ごと。赤と黒なら2回）を順に鳴らす。
 // 返り値は、各種類の最後の音が鳴る時刻（performance.now の時間軸、ミリ秒）の配列。画面で種類の名前を光らせるのに使う。
 export function playSoundCheck(kinds) {
   const c = getAudioContext();

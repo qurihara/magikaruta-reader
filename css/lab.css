@@ -1,0 +1,270 @@
+/* ==========================
+   lab.css
+   ==========================
+   実験用のページ（lab.html）だけの見た目。style.css の色と書体（和紙の地、墨の文字、常磐色、朱）をそのまま使う。
+   監督者が慌てていても押し間違えないように、次の3つを画面の離れた場所に置く。
+   - 「読む」（左の列の大きな取り札）
+   - 「次のゲームへ」（右の列の上、常磐色の大きなボタン）
+   - 重い操作（右の列の中ほど、朱の破線で囲んだ「やり直しと取り消し」）
+   カメラ用の点滅の幕と、参加者に見せるルールの板もここにある。
+   ========================== */
+
+.lab {
+  position: relative;
+  min-height: 100dvh;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: calc(10px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.lab-top { flex-wrap: wrap; }
+.lab-top .brand { flex: 1 1 auto; }
+.save-badge {
+  order: 3;
+  flex: 0 0 auto;
+  padding: .15em .7em;
+  border-radius: 999px;
+  font-size: .78rem;
+  letter-spacing: .05em;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.save-badge[data-state="ok"] { border-color: var(--tokiwa); color: var(--tokiwa); }
+.save-badge[data-state="error"] { background: var(--shu); border-color: var(--shu); color: #fff; font-weight: 700; }
+.top-actions { order: 2; }
+@media (min-width: 720px) { .save-badge { order: 2; } .top-actions { order: 3; } }
+.lab-notice { font-size: .92rem; }
+.resume-info {
+  margin: 0 auto 1.4rem;
+  max-width: 28rem;
+  padding: .7em .9em;
+  text-align: left;
+  font-size: .92rem;
+  border-left: 3px solid var(--tokiwa);
+  background: color-mix(in srgb, var(--tokiwa-soft) 70%, transparent);
+  border-radius: 0 8px 8px 0;
+}
+
+/* ---------- 2列の配置 ---------- */
+.lab-grid { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+@media (min-width: 900px) {
+  .lab-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; }
+}
+.lab-reader, .lab-flow { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+/* ---------- 条件の札 ---------- */
+.lab-plate {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.7fr;
+  gap: 4px 0;
+  padding: 12px 6px 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.lab-plate[data-blank="1"] { box-shadow: inset 0 -5px 0 var(--shu), var(--shadow); }
+.lp-cell { display: flex; flex-direction: column; min-width: 0; padding: 0 12px; }
+.lp-cell + .lp-cell { border-left: 1px solid var(--line); }
+.lp-key { font-size: .78rem; color: var(--ink-soft); letter-spacing: .12em; white-space: nowrap; }
+.lp-val {
+  font-family: var(--mincho);
+  font-weight: 800;
+  font-size: clamp(2.6rem, 7vw, 4.2rem);
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.lp-deal-val { font-family: var(--mincho); font-weight: 800; font-size: clamp(1.25rem, 3vw, 1.75rem); line-height: 1.3; margin-top: .25em; }
+.lp-sub { font-size: .85rem; color: var(--ink-soft); }
+.lp-phase { grid-column: 1 / -1; margin: 6px 12px 0; padding-top: 6px; border-top: 1px dashed var(--line); font-size: .88rem; color: var(--ink-soft); }
+.lab-plate[data-phase="playing"] .lp-phase { color: var(--tokiwa); font-weight: 700; }
+@media (max-width: 560px) {
+  .lab-plate { grid-template-columns: 1fr 1fr; }
+  .lp-deal { grid-column: 1 / -1; border-left: none !important; border-top: 1px solid var(--line); padding-top: 6px; margin-top: 4px; }
+}
+
+/* ---------- 読み上げ ---------- */
+.lab-progress { flex: none; gap: 6px; }
+.lab-progress .status { min-height: 2.6em; }
+.lab-read { min-height: clamp(150px, 26vh, 240px); }
+.reader-sub { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.btn-tall {
+  min-height: 64px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  line-height: 1.25;
+  font-weight: 700;
+}
+button small { display: block; font-size: .72rem; font-weight: 400; color: var(--ink-soft); letter-spacing: .02em; margin-top: 2px; }
+.btn-primary small, .btn-next small { color: inherit; opacity: .8; }
+.btn-stop:not(:disabled) { border-color: var(--shu); color: var(--shu); background: var(--shu-soft); }
+.btn-stop:not(:disabled) small { color: var(--shu); }
+@media (max-width: 420px) {
+  .reader-sub { grid-template-columns: 1fr 1fr; }
+  .reader-sub .btn-hold { grid-column: 1 / -1; }
+}
+
+/* ---------- 右の列の板 ---------- */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 16px 14px;
+}
+.panel-title { margin: 0 0 8px; font-family: var(--mincho); font-weight: 800; font-size: 1.12rem; letter-spacing: .06em; }
+.panel-sub { margin-left: .5em; font-family: var(--gothic); font-weight: 500; font-size: .82rem; color: var(--ink-soft); letter-spacing: .02em; }
+.flow-panel { border-width: 2px; border-color: var(--tokiwa); }
+.flow-text { margin: 0 0 12px; font-size: .92rem; color: var(--ink-soft); }
+.flow-actions { display: grid; gap: 10px; }
+.wide { width: 100%; }
+.flow-actions .btn-secondary, .flow-actions .btn-ghost, .flow-actions .btn-danger { min-height: 52px; }
+.btn-next {
+  width: 100%;
+  min-height: 92px;
+  border: none;
+  border-radius: 14px;
+  background: var(--tokiwa);
+  color: #fff;
+  font-family: var(--mincho);
+  font-weight: 800;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  letter-spacing: .14em;
+  box-shadow: var(--shadow);
+}
+.btn-next:active:not(:disabled) { transform: translateY(1px); }
+.end-choices { display: grid; gap: 8px; margin-top: 4px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.end-q { margin: 0; font-weight: 700; }
+.attention { border-color: var(--shu) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--shu) 30%, transparent); }
+
+/* 重い操作は、朱の破線で囲み、上に余白を取って「次のゲームへ」から離す。 */
+.danger-zone { margin-top: 18px; border: 2px dashed color-mix(in srgb, var(--shu) 60%, var(--line)); background: color-mix(in srgb, var(--shu-soft) 25%, var(--card)); display: grid; gap: 10px; }
+.danger-zone .panel-title { margin-bottom: 0; color: var(--shu); }
+.danger-zone .help { margin: 0; }
+.btn-danger { min-height: 52px; }
+.btn-danger small { color: inherit; opacity: .85; }
+.btn-danger.armed small { color: #fff; }
+
+/* 手動の指定 */
+.manual-panel { border-width: 2px; border-color: var(--gold); }
+.row.buttons.end { justify-content: flex-end; }
+
+/* 卓と名札 */
+.meta-tables { display: grid; gap: 6px; }
+.meta-row { display: grid; grid-template-columns: 5.2em 1fr 1fr; gap: 8px; align-items: center; }
+.meta-row.off .tag { opacity: .45; }
+.meta-row .tag { width: 100%; min-width: 0; }
+.inline-check { display: inline-flex; align-items: center; gap: .35em; white-space: nowrap; margin-right: .8em; }
+.inline-check input { width: 1.15em; height: 1.15em; accent-color: var(--tokiwa); }
+.meta-memo { display: grid; gap: 4px; margin-top: 10px; font-size: .9rem; color: var(--ink-soft); }
+textarea {
+  width: 100%;
+  font: inherit;
+  color: var(--ink);
+  padding: .4em .55em;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  resize: vertical;
+}
+.panel input[type="text"] { background: var(--paper); }
+
+/* 条件の袋 */
+.bag-wrap { overflow-x: auto; }
+.bag-table { width: 100%; border-collapse: separate; border-spacing: 4px; font-variant-numeric: tabular-nums; }
+.bag-table th { font-size: .78rem; font-weight: 500; color: var(--ink-soft); white-space: nowrap; }
+.bag-table th[scope="row"] { text-align: left; padding-right: 4px; }
+.bag-table td {
+  text-align: center;
+  padding: 4px 2px;
+  min-width: 2.6em;
+  border-radius: 6px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  line-height: 1.2;
+}
+.bag-table td.current { border: 2px solid var(--shu); }
+.bag-table .n { display: block; font-family: var(--mincho); font-weight: 800; font-size: 1.15rem; }
+.bag-table .dots { display: block; min-height: 1em; font-size: .7rem; color: var(--tokiwa); letter-spacing: .1em; }
+
+/* ゲームの記録 */
+.history { margin-top: 6px; }
+.history-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.hist-item details { border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+.hist-item summary { cursor: pointer; padding: .5em .8em; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: .9rem; }
+.hist-item .h-time { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.hist-item.outcome-void summary .h-main, .hist-item.outcome-redo summary .h-main { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--shu) 60%, transparent); }
+.hist-item.outcome-playing summary, .hist-item.outcome-ready summary { font-weight: 700; }
+.hist-body { padding: 4px 12px 12px; display: grid; gap: 8px; font-size: .88rem; }
+.hist-reads { margin: 0; font-variant-numeric: tabular-nums; }
+.hist-body .btn-danger { justify-self: start; }
+
+.foot { justify-content: space-between; align-items: center; }
+.foot-link { font-size: .78rem; color: var(--ink-soft); }
+
+/* ---------- カメラ用の点滅 ---------- */
+.flash { position: fixed; inset: 0; z-index: 50; background: #000; }
+.flash-plate {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.6fr;
+  gap: 0;
+  padding: 14px 18px;
+  background: #f6f0e2;
+  color: #1d1915;
+  font-family: var(--mincho);
+}
+.fp-cell { display: flex; flex-direction: column; min-width: 0; padding: 0 14px; }
+.fp-cell + .fp-cell { border-left: 2px solid #cfc3a8; }
+.fk { font-family: var(--gothic); font-size: clamp(.9rem, 2vw, 1.3rem); font-weight: 700; color: #4a4238; letter-spacing: .1em; }
+.fv { font-weight: 800; font-size: clamp(3rem, 11vw, 8rem); line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fv-deal { font-size: clamp(1.4rem, 4.4vw, 3.2rem); line-height: 1.2; white-space: normal; margin-top: .2em; }
+.flash-stop {
+  position: absolute;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  min-height: 56px;
+  padding: .5em 1.4em;
+  border-radius: 12px;
+  border: 2px solid #777;
+  background: rgba(30, 30, 30, .85);
+  color: #ddd;
+  font-weight: 700;
+  font-size: 1rem;
+}
+@media (max-width: 560px) {
+  .flash-plate { grid-template-columns: 1fr 1fr; }
+  .fp-deal { grid-column: 1 / -1; border-left: none !important; border-top: 2px solid #cfc3a8; padding-top: 6px; margin-top: 6px; }
+}
+
+/* ---------- 参加者に見せるルール ---------- */
+.rule-board {
+  position: fixed; inset: 0; z-index: 70;
+  display: grid; place-items: center;
+  padding: 24px 16px;
+  background: var(--paper);
+  overflow-y: auto;
+}
+.rule-board-inner { max-width: 46rem; text-align: left; }
+.rb-kicker { margin: 0; color: var(--ink-soft); letter-spacing: .1em; }
+.rb-title { margin: .2em 0 .6em; font-family: var(--mincho); font-weight: 800; font-size: clamp(2rem, 6vw, 3.4rem); letter-spacing: .08em; }
+.rb-list { margin: 0 0 1em; padding-left: 1.4em; font-size: clamp(1.15rem, 3vw, 1.7rem); line-height: 1.6; }
+.rb-list li { margin: .3em 0; }
+.rb-emph {
+  margin: 0 0 1.4em;
+  padding: .7em 1em;
+  border-left: 6px solid var(--shu);
+  background: color-mix(in srgb, var(--shu-soft) 70%, transparent);
+  font-family: var(--mincho);
+  font-weight: 800;
+  font-size: clamp(1.3rem, 3.6vw, 2.1rem);
+  line-height: 1.5;
+  border-radius: 0 10px 10px 0;
+}
+
+/* 答えの表示の読んだ順は、読み直しと中断の印が付くので少し広く取る。 */
+.lab-body .reveal-hist li { min-width: 2.4em; }

@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171512" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex">
+<meta name="description" content="まじかるたの実験用のページ。読み上げと進行管理を1台の端末で行います。">
+<title>まじかるた 実験の進行</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/lab.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='10' y='4' width='44' height='56' rx='5' fill='%23fbf8f1' stroke='%23c8381f' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%231f5a3d'/%3E%3C/svg%3E">
+</head>
+<body class="lab-body">
+
+<!-- 最初の画面。ここでのタップで AudioContext を起こし、画面の消灯を止める。 -->
+<section id="splash" class="splash" aria-labelledby="splashTitle">
+  <div class="splash-inner">
+    <p class="splash-kicker">監督者用</p>
+    <h1 id="splashTitle" class="splash-title">まじかるた</h1>
+    <p class="splash-sub">実験の進行</p>
+    <p class="splash-lead">読み上げと進行管理を、この1台で行います。操作のたびにこの端末へ保存するので、閉じても再読み込みしても続きから戻ります。</p>
+    <p id="resumeInfo" class="resume-info" hidden></p>
+    <button id="btnStart" class="btn-primary btn-start" type="button" disabled>読み込んでいます</button>
+    <ul class="splash-notes">
+      <li id="noteSilent"><strong>iPhone・iPad</strong>：本体の消音スイッチを切り、音量ボタンで音量を上げてください。</li>
+      <li>画面が消えないようにします。ノートPCは電源につなぎ、スリープしない設定にしてください。</li>
+      <li>同じ端末の別のタブで、このページを同時に開かないでください。</li>
+    </ul>
+  </div>
+</section>
+
+<div id="app" class="lab" hidden>
+  <header class="top lab-top">
+    <div class="brand">
+      <span class="seal" aria-hidden="true">験</span>
+      <span class="brand-name">まじかるた<span class="brand-sub">実験の進行</span></span>
+    </div>
+    <span id="saveBadge" class="save-badge" role="status">保存済み</span>
+    <nav class="top-actions">
+      <button id="btnData" class="btn-ghost" type="button">書き出し・読み込み</button>
+      <button id="btnSettings" class="btn-ghost" type="button">設定</button>
+    </nav>
+  </header>
+
+  <p id="mainNotice" class="notice lab-notice" hidden></p>
+
+  <div class="lab-grid">
+    <!-- 左：読み上げ -->
+    <section class="lab-reader" aria-label="読み上げ">
+      <div id="plate" class="lab-plate">
+        <div class="lp-cell">
+          <span class="lp-key">ゲーム</span>
+          <span class="lp-val" id="pGameNo">—</span>
+        </div>
+        <div class="lp-cell">
+          <span class="lp-key">間隔 t（秒）</span>
+          <span class="lp-val" id="pT">—</span>
+        </div>
+        <div class="lp-cell lp-deal">
+          <span class="lp-key">配り方</span>
+          <span class="lp-deal-val" id="pDeal">—</span>
+          <span class="lp-sub" id="pRange"></span>
+        </div>
+        <p class="lp-phase" id="pPhase"></p>
+      </div>
+
+      <section class="progress lab-progress" aria-live="polite">
+        <p class="count"><span class="count-label">読んだ札</span><span id="readCount" class="count-num">0</span><span class="count-of">／<span id="totalCount">12</span>枚</span></p>
+        <div id="slots" class="slots" aria-hidden="true"></div>
+        <p id="statusText" class="status"></p>
+      </section>
+
+      <button id="btnRead" class="read-card lab-read" type="button">
+        <span class="read-label" id="readLabel">読む</span>
+        <span class="read-sub" id="readSub"></span>
+      </button>
+
+      <div class="reader-sub">
+        <button id="btnReread" class="btn-secondary btn-tall" type="button">読み直す<small>直前の札をもう一度</small></button>
+        <button id="btnStop" class="btn-secondary btn-tall btn-stop" type="button">止める<small>読んでいる最中だけ（Esc）</small></button>
+        <button id="btnReveal" class="btn-hold btn-tall" type="button">
+          <span class="hold-fill" aria-hidden="true"></span>
+          <span class="hold-text">答えを確かめる</span>
+          <span class="hold-hint">長押し</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 右：進行 -->
+    <section class="lab-flow" aria-label="進行">
+      <div class="panel flow-panel">
+        <h2 class="panel-title" id="flowTitle">最初のゲーム</h2>
+        <p class="flow-text" id="flowText"></p>
+
+        <div id="flowReady" class="flow-actions" hidden>
+          <button id="btnShowRule" class="btn-secondary wide" type="button">ルールを参加者に見せる</button>
+          <button id="btnPostpone" class="btn-secondary wide" type="button">後回し<small>この条件を袋に戻し、別の条件を引く</small></button>
+          <button id="btnManual" class="btn-ghost wide" type="button">条件を手で指定する</button>
+        </div>
+
+        <div id="flowPlaying" class="flow-actions" hidden>
+          <button id="btnEnd" class="btn-primary wide btn-tall" type="button">ゲームを終える</button>
+          <div id="endChoices" class="end-choices" hidden>
+            <p class="end-q">終え方を選んでください</p>
+            <button id="btnEndCompleted" class="btn-secondary wide" type="button">完了<small>札が無くなった</small></button>
+            <button id="btnEndStopped" class="btn-secondary wide" type="button">途中終了<small>時間切れなどで打ち切った</small></button>
+            <button id="btnEndVoid" class="btn-danger wide" type="button">無効<small>記録に使わない。条件を袋に戻す（2回押す）</small></button>
+            <button id="btnEndCancel" class="btn-ghost wide" type="button">戻る（まだ終えない）</button>
+          </div>
+        </div>
+
+        <div id="flowEnded" class="flow-actions" hidden>
+          <button id="btnNext" class="btn-next" type="button">次のゲームへ</button>
+          <button id="btnManual2" class="btn-ghost wide" type="button">次のゲームの条件を手で指定する</button>
+          <button id="btnReopen" class="btn-ghost wide" type="button">終えたのを取り消して、このゲームを続ける</button>
+        </div>
+      </div>
+
+      <div id="manualPanel" class="panel manual-panel" hidden>
+        <h2 class="panel-title">条件を手で指定する</h2>
+        <div class="row"><span class="row-label">間隔 t（秒）</span></div>
+        <div class="seg seg-wrap" id="manualTSeg" role="radiogroup" aria-label="間隔 t"></div>
+        <label class="row" id="manualCustomRow"><span class="row-label">自由な値</span>
+          <span class="row-ctrl"><input type="number" id="manualCustom" step="0.01" min="0.05" max="3" inputmode="decimal"> 秒</span>
+        </label>
+        <div class="row"><span class="row-label">空札</span>
+          <span class="seg" role="radiogroup" aria-label="空札の有無">
+            <label><input type="radio" name="manualBlank" value="0"><span>空札なし（1〜12）</span></label>
+            <label><input type="radio" name="manualBlank" value="1"><span>空札あり（1〜13）</span></label>
+          </span>
+        </div>
+        <p class="help">手で指定したゲームには、記録に「手動」の印が付きます。条件の袋は使いません（用意してあったゲームの条件は袋に戻します）。</p>
+        <div class="row buttons end">
+          <button id="btnManualCancel" class="btn-ghost" type="button">やめる</button>
+          <button id="btnManualApply" class="btn-primary" type="button">この条件で用意する</button>
+        </div>
+      </div>
+
+      <div class="panel danger-zone">
+        <h2 class="panel-title">やり直しと取り消し</h2>
+        <button id="btnRedo" class="btn-danger wide" type="button">やり直す<small>同じ条件でもう一度。いまの回に「やり直し」の印</small></button>
+        <button id="btnVoid" class="btn-danger wide" type="button">取り消す<small>「無効」の印を付けて、条件を袋に戻す</small></button>
+        <p class="help">どちらも、2回続けて押すと実行します。</p>
+      </div>
+
+      <div id="metaPanel" class="panel" hidden>
+        <h2 class="panel-title">卓と名札<span class="panel-sub" id="metaGameNo"></span></h2>
+        <div id="metaTables" class="meta-tables"></div>
+        <label class="meta-memo"><span>メモ</span><textarea id="metaMemo" rows="2" maxlength="2000" placeholder="例：2卓は途中で交代"></textarea></label>
+        <p class="help">空のままでもかまいません（あとで映像から補えます）。次のゲームには、このゲームの卓と名札を写します。</p>
+      </div>
+
+      <div class="panel" id="bagPanel">
+        <h2 class="panel-title">条件の袋<span class="panel-sub" id="bagRound"></span></h2>
+        <div class="bag-wrap"><table id="bagTable" class="bag-table"></table></div>
+        <p class="help">数字は有効なゲーム（完了か途中終了）の数です。●は、この巡でまだ行っていない条件です。枠のある欄が、いまのゲームの条件です。</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel history" aria-labelledby="historyTitle">
+    <h2 class="panel-title" id="historyTitle">ゲームの記録</h2>
+    <p class="help" id="historyInfo"></p>
+    <ol id="historyList" class="history-list"></ol>
+  </section>
+
+  <footer class="foot"><a class="foot-link" href="./">公開版</a><span id="version" class="version">v0.0.0</span></footer>
+</div>
+
+<!-- カメラ用の点滅。読んでいる間だけ出す。ゲームの番号と t と配り方を、点滅の上に大きく出し続ける。 -->
+<div id="flash" class="flash" hidden>
+  <div class="flash-plate">
+    <div class="fp-cell"><span class="fk">ゲーム</span><span class="fv" id="fGameNo">1</span></div>
+    <div class="fp-cell"><span class="fk">t（秒）</span><span class="fv" id="fT">0.4</span></div>
+    <div class="fp-cell fp-deal"><span class="fk">配り方</span><span class="fv fv-deal" id="fDeal">6枚ずつ・空札あり</span></div>
+  </div>
+  <button id="btnFlashStop" class="flash-stop" type="button">止める（Esc）</button>
+</div>
+
+<!-- 参加者に見せるルール -->
+<div id="ruleBoard" class="rule-board" hidden role="dialog" aria-modal="true" aria-labelledby="ruleBoardTitle">
+  <div class="rule-board-inner">
+    <p class="rb-kicker" id="rbKicker"></p>
+    <h2 id="ruleBoardTitle" class="rb-title">空札のルール</h2>
+    <ol id="rbList" class="rb-list"></ol>
+    <p class="rb-emph" id="rbEmph" hidden></p>
+    <button class="btn-primary btn-start" id="btnRuleClose" type="button">閉じる</button>
+  </div>
+</div>
+
+<!-- 答えの表示（監督者が長押ししたときだけ）。 -->
+<div id="reveal" class="reveal" hidden role="dialog" aria-modal="true" aria-labelledby="revealTitle">
+  <div class="reveal-card">
+    <p id="revealTitle" class="reveal-title">直前の読み</p>
+    <p class="reveal-value"><span id="revealValue">7</span><span id="revealFace" class="reveal-face"></span></p>
+    <p class="reveal-hist-title">このゲームで読んだ順（読み直しと中断を含む）</p>
+    <ol id="revealHistory" class="reveal-hist"></ol>
+    <p class="reveal-close">画面を触ると閉じます</p>
+  </div>
+</div>
+
+<!-- 設定 -->
+<dialog id="dlgSettings" class="sheet" aria-labelledby="settingsTitle">
+  <form id="settingsForm" method="dialog">
+    <div class="sheet-head">
+      <h2 id="settingsTitle">設定</h2>
+      <button class="btn-ghost" type="button" data-close>閉じる</button>
+    </div>
+    <div class="sheet-body">
+      <fieldset class="group">
+        <legend>条件の水準</legend>
+        <label class="row"><span class="row-label">間隔 t の水準（秒、「,」で区切る）</span>
+          <span class="row-ctrl grow"><input type="text" name="tLevels" inputmode="decimal" autocomplete="off"></span>
+        </label>
+        <div class="row"><span class="row-label">空札の水準</span>
+          <span class="row-ctrl">
+            <label class="inline-check"><input type="checkbox" name="blankNo"> 空札なし</label>
+            <label class="inline-check"><input type="checkbox" name="blankYes"> 空札あり</label>
+          </span>
+        </div>
+        <p class="help" id="levelsHelp"></p>
+        <div class="row buttons">
+          <button id="btnResetBag" type="button" class="btn-danger">袋を作り直す</button>
+        </div>
+        <p class="help">「袋を作り直す」を2回押すと、袋に残った条件を捨て、次に引くときに全部の条件で次の巡を始めます。</p>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>音</legend>
+        <label class="row"><span class="row-label">準備音から最初の音まで</span>
+          <span class="row-ctrl"><input type="number" name="prepGapSec" step="0.1" min="0.3" max="3" inputmode="decimal"> 秒</span>
+        </label>
+        <label class="row"><span class="row-label">音量</span>
+          <span class="row-ctrl grow"><input type="range" name="volume" min="0" max="1" step="0.05"></span>
+        </label>
+        <div class="row"><button id="btnSoundCheck" type="button" class="btn-secondary">音を確かめる</button></div>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>カメラ用の点滅</legend>
+        <label class="row check"><input type="checkbox" name="flash"><span>読んでいる間、画面全体を黒くし、音の時刻に光らせる</span></label>
+        <label class="row"><span class="row-label">点滅の遅れの補正</span>
+          <span class="row-ctrl"><input type="number" name="flashOffsetMs" step="5" min="-300" max="500" inputmode="numeric"> ミリ秒</span>
+        </label>
+        <p class="help">準備音は灰、通常の音は白、最後の音は朱で光ります。外付けのスピーカで音が遅れて聞こえるときは、補正を正の値にします。</p>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>卓と記録</legend>
+        <label class="row"><span class="row-label">同時に遊ぶ組（卓）の数</span>
+          <span class="row-ctrl"><select name="tableCount"><option>1</option><option>2</option><option>3</option><option>4</option></select></span>
+        </label>
+        <label class="row"><span class="row-label">記録の見出し</span>
+          <span class="row-ctrl grow"><input type="text" name="label" maxlength="60" placeholder="例：12/13 会場A"></span>
+        </label>
+      </fieldset>
+
+      <fieldset class="group">
+        <legend>空札のルールの説明</legend>
+        <label class="row"><span class="row-ctrl grow"><textarea name="blankRuleText" rows="3" maxlength="300"></textarea></span></label>
+        <p class="help">「ルールを参加者に見せる」で大きく出す文です。お手つきの罰を決めたら書き換えてください。空にすると既定の文に戻ります。</p>
+      </fieldset>
+    </div>
+    <div class="sheet-foot">
+      <button type="button" class="btn-ghost" data-close>やめる</button>
+      <button type="submit" class="btn-primary">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 書き出しと読み込み -->
+<dialog id="dlgData" class="sheet" aria-labelledby="dataTitle">
+  <div class="sheet-head">
+    <h2 id="dataTitle">書き出し・読み込み</h2>
+    <button class="btn-ghost" type="button" data-close>閉じる</button>
+  </div>
+  <div class="sheet-body">
+    <fieldset class="group">
+      <legend>書き出し</legend>
+      <div class="row buttons">
+        <button id="btnExportJson" type="button" class="btn-secondary">JSON（状態の全部）</button>
+        <button id="btnExportCsv" type="button" class="btn-secondary">CSV（1行が1つの音）</button>
+        <button id="btnExportGames" type="button" class="btn-secondary">CSV（1行が1つのゲーム）</button>
+      </div>
+      <p class="help" id="dataInfo"></p>
+    </fieldset>
+    <fieldset class="group">
+      <legend>読み込み（別の端末で続ける）</legend>
+      <p class="help">別の端末で書き出した JSON を選び、ボタンを2回押すと、いまの記録と置き換えて続きから進めます。置き換える前に、いまの記録を自動で書き出します。</p>
+      <div class="row"><input type="file" id="fImport" accept=".json,application/json"></div>
+      <p class="help" id="importInfo"></p>
+      <div class="row buttons"><button id="btnImport" type="button" class="btn-danger" disabled>読み込んで置き換える</button></div>
+    </fieldset>
+    <fieldset class="group">
+      <legend>全部消す</legend>
+      <p class="help">ゲームの記録と条件の袋を消し、設定だけを残します。消す前に、いまの記録を自動で書き出します。</p>
+      <div class="row buttons"><button id="btnClearAll" type="button" class="btn-danger">記録を全部消す</button></div>
+    </fieldset>
+  </div>
+</dialog>
+
+<script type="module" src="js/lab-app.js"></script>
+</body>
+</html>

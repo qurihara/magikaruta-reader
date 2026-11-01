@@ -40,22 +40,23 @@
     </div>
     <nav class="top-actions">
       <button id="btnRules" class="btn-ghost" type="button">遊び方</button>
-      <button id="btnSettings" class="btn-ghost" type="button">設定</button>
+      <button id="btnSettings" class="btn-ghost" type="button">ルールと速さ</button>
     </nav>
   </header>
 
-  <!-- ゲームの番号と t の札。点滅の黒い地の上にも出し、天井カメラの画角で読めるようにする。 -->
-  <section id="plate" class="plate" aria-label="いまのゲーム">
-    <div class="plate-cell">
-      <span class="plate-key">ゲーム</span>
-      <span class="plate-val"><span id="infoGameNo">1</span></span>
-    </div>
-    <div class="plate-cell">
-      <span class="plate-key">間隔 t<span class="key-unit">（秒）</span></span>
-      <span class="plate-val"><span id="infoT">0.4</span><span class="plate-unit">秒</span></span>
-    </div>
-    <p id="ruleLine" class="plate-rule">1〜12・空札なし</p>
-  </section>
+  <!-- いまのルールと速さ。押すと「ルールと速さ」を開く。 -->
+  <button id="plate" class="plate plate-public" type="button" aria-label="ルールと速さを変える">
+    <span class="plate-cell">
+      <span class="plate-key">ルール</span>
+      <span class="plate-name" id="infoRule">いつものルール</span>
+      <span class="plate-note" id="infoRuleNote">1〜12 の12枚・空札なし</span>
+    </span>
+    <span class="plate-cell">
+      <span class="plate-key">電子音の間隔</span>
+      <span class="plate-name" id="infoSpeed">ふつう</span>
+      <span class="plate-note"><span id="infoT">0.4</span> 秒ごと</span>
+    </span>
+  </button>
 
   <section class="progress" aria-live="polite">
     <p class="count"><span class="count-label">読んだ札</span><span id="readCount" class="count-num">0</span><span class="count-of">／<span id="totalCount">12</span>枚</span></p>
@@ -66,6 +67,7 @@
 
   <section class="controls">
     <button id="btnRead" class="read-card" type="button">
+      <span class="read-glow" aria-hidden="true"></span>
       <span class="read-label" id="readLabel">読む</span>
       <span class="read-sub" id="readSub">1枚目</span>
     </button>
@@ -73,7 +75,7 @@
       <button id="btnReveal" class="btn-hold" type="button" aria-describedby="revealHint">
         <span class="hold-fill" aria-hidden="true"></span>
         <span class="hold-text">答えを確かめる</span>
-        <span id="revealHint" class="hold-hint">運営者用・長押し</span>
+        <span id="revealHint" class="hold-hint">長押し</span>
       </button>
       <button id="btnNewGame" class="btn-secondary" type="button">新しいゲーム</button>
     </div>
@@ -82,10 +84,7 @@
   <footer class="foot"><span id="version" class="version">v0.0.0</span></footer>
 </div>
 
-<!-- 点滅の幕。読んでいる間だけ出す。 -->
-<div id="flash" class="flash" hidden></div>
-
-<!-- 答えの表示（運営者が長押ししたときだけ）。 -->
+<!-- 答えの表示（長押ししたときだけ）。 -->
 <div id="reveal" class="reveal" hidden role="dialog" aria-modal="true" aria-labelledby="revealTitle">
   <div class="reveal-card">
     <p id="revealTitle" class="reveal-title">直前の読み</p>
@@ -105,135 +104,88 @@
   </div>
   <div class="sheet-body prose">
     <div class="tabs" role="tablist">
-      <button role="tab" type="button" class="tab" aria-selected="true" data-tab="r-basic">現行ルール</button>
-      <button role="tab" type="button" class="tab" aria-selected="false" data-tab="r-blank">空札</button>
-      <button role="tab" type="button" class="tab" aria-selected="false" data-tab="r-kinds">種類</button>
-      <button role="tab" type="button" class="tab" aria-selected="false" data-tab="r-t">間隔 t</button>
+      <button role="tab" type="button" class="tab" aria-selected="true" data-tab="r-basic">いつものルール</button>
+      <button role="tab" type="button" class="tab" aria-selected="false" data-tab="r-blank">空札あり</button>
+      <button role="tab" type="button" class="tab" aria-selected="false" data-tab="r-t">電子音の間隔</button>
+      <button role="tab" type="button" class="tab" aria-selected="false" data-tab="r-redblack">赤と黒</button>
     </div>
     <section id="r-basic" class="tabpanel">
-      <h3>現行ルール（1〜12、空札なし）</h3>
+      <h3>いつものルール（1〜12、空札なし）</h3>
       <ol>
         <li>1から12の数字が書かれた札を12枚用意します（トランプの A〜Q でも遊べます）。</li>
         <li>よく混ぜて配ります。2人なら6枚ずつです。数字を表にして、自分の前に並べます（自陣）。相手の手が届く位置に置きます。</li>
         <li>最初の音が鳴るまでは、手を札に乗せずに待ちます。</li>
         <li>「読む」を押すと、準備音のあとに「ピン」が1〜12回鳴ります。最後の1回だけ高い音です。鳴った回数と同じ数字の札を取ります。</li>
         <li>先に札に触れた人がその札を取ります。相手の陣の札を取ったら、自分の陣の札を1枚相手に送ります。</li>
-        <li>自分の陣の札が先に無くなった人の勝ちです。アプリは同じ値を2回読みません。全部読み終えたら「新しいゲーム」で次へ進みます。</li>
+        <li>自分の陣の札が先に無くなった人の勝ちです。アプリは同じ値を2回読みません。</li>
       </ol>
-      <p class="aside">同時に触れたときは、その札が置かれていた陣の人の取りとします。正しい札のある陣なら、何枚に触れてもかまいません（上級の決まり）。どちらが先かは、遊ぶ人どうしで決めます。</p>
+      <p class="aside">同時に触れたときは、その札が置かれていた陣の人の取りとします。どちらが先かは、遊ぶ人どうしで決めます。</p>
     </section>
     <section id="r-blank" class="tabpanel" hidden>
-      <h3>空札のルール</h3>
+      <h3>空札あり（1〜13を読む）</h3>
       <p>使わない札（空札）を混ぜると、「残りの札を全部払えば取れる」場面が減り、最後の音まで聞く駆け引きが増えます。</p>
       <ol>
-        <li>設定で値の範囲を 1〜13 にし、「空札のルールで遊ぶ」を入れます。</li>
-        <li>13枚の札を混ぜ、2人に6枚ずつ配ります。残った1枚は、誰にも見せずに伏せたまま脇へ置きます。これが空札です。</li>
+        <li>1から13の札を13枚用意し、よく混ぜて2人に6枚ずつ配ります。</li>
+        <li>残った1枚は、誰にも見せずに伏せたまま脇へ置きます。これが空札です。</li>
         <li>アプリは、どの値が空札かを知りません。13の値をすべて、無作為の順に読みます。</li>
         <li>空札の値が読まれたら、誰も札に触れてはいけません。触れたらお手つきで、相手から札を1枚送られます。</li>
       </ol>
-      <p class="aside">人数や枚数を変えれば、空札を2枚以上にもできます（たとえば1〜13で5枚ずつ配ると、空札は3枚）。</p>
-    </section>
-    <section id="r-kinds" class="tabpanel" hidden>
-      <h3>種類のあるルール（赤と黒など）</h3>
-      <p>同じ値の札が種類の数だけあります。たとえば2種類なら、赤の1〜12と黒の1〜12の24枚です。最後の音の高さと音色で、どの種類の札かを伝えます。</p>
-      <ul id="kindLegend" class="kind-legend"></ul>
-      <p>鳴った回数で値を、最後の音で種類を聞き分けて取ります。最後の音が鳴るまでは種類が分からないので、値が絞れても、まだ取れないことがあります。</p>
-      <p class="aside">設定の「音の確認」で、種類ごとの最後の音を聞き比べられます。点滅を使うときは、最後の点滅も種類の色になります。</p>
     </section>
     <section id="r-t" class="tabpanel" hidden>
-      <h3>電子音の間隔 t</h3>
-      <p>t は、電子音の鳴り始めから次の鳴り始めまでの秒数です。t が長いほど、音を数えながら候補の札へ手を動かす余裕が生まれます。t が短いと、最後の音を聞いてから取る勝負に近づきます。</p>
-      <p>設定では、0.1、0.2、0.4、0.8、1.6 秒の5つから選ぶか、自由な値を入れられます。「ゲームごとに無作為」を選ぶと、5ゲームごとに5つの値が1回ずつ出る順で、ゲームのたびに t が変わります。</p>
+      <h3>電子音の間隔</h3>
+      <p>電子音の鳴り始めから次の鳴り始めまでの秒数を、「ルールと速さ」で5つから選べます。</p>
+      <ul id="speedLegend" class="speed-legend"></ul>
+      <p>間隔が長いほど、音を数えながら候補の札へ手を動かす余裕が生まれます。短いと、最後の音を聞いてから取る勝負に近づきます。</p>
+    </section>
+    <section id="r-redblack" class="tabpanel" hidden>
+      <h3>赤と黒（ほかの遊び方）</h3>
+      <p>赤の1〜6と黒の1〜6の、12枚で遊びます（トランプの♥と♠の A〜6 でも遊べます）。同じ数字の札が、赤と黒の2枚ずつあります。</p>
+      <p>鳴った回数で数字を、最後の音の高さで色を聞き分けて取ります。</p>
+      <ul class="kind-legend">
+        <li style="--kind: #c8321e"><span class="sw"></span><b>赤</b><span class="d">最後の音が高い（ふつうの音の1オクターブ上）</span></li>
+        <li style="--kind: #2b2723"><span class="sw"></span><b>黒</b><span class="d">最後の音が低い（ふつうの音の1オクターブ下）</span></li>
+      </ul>
+      <p>最後の音が鳴るまでは色が分からないので、数字が絞れても、まだ取れないことがあります。「ルールと速さ」の「音を確かめる」で、2つの音を聞き比べられます。</p>
     </section>
   </div>
 </dialog>
 
-<!-- 設定 -->
+<!-- ルールと速さ -->
 <dialog id="dlgSettings" class="sheet" aria-labelledby="settingsTitle">
   <form id="settingsForm" method="dialog">
     <div class="sheet-head">
-      <h2 id="settingsTitle">設定</h2>
+      <h2 id="settingsTitle">ルールと速さ</h2>
       <button class="btn-ghost" type="button" data-close>閉じる</button>
     </div>
     <div class="sheet-body">
       <fieldset class="group">
         <legend>ルール</legend>
-        <label class="row"><span class="row-label">値の範囲</span>
-          <span class="row-ctrl">1〜<select name="maxValue" id="fMaxValue"></select></span>
-        </label>
-        <div class="row"><span class="row-label">札の種類</span>
-          <span class="seg" role="radiogroup" aria-label="札の種類の数">
-            <label><input type="radio" name="kinds" value="1"><span>1</span></label>
-            <label><input type="radio" name="kinds" value="2"><span>2</span></label>
-            <label><input type="radio" name="kinds" value="3"><span>3</span></label>
-            <label><input type="radio" name="kinds" value="4"><span>4</span></label>
-          </span>
+        <div class="rule-choices">
+          <label class="rule-choice"><input type="radio" name="rule" value="standard">
+            <span><b>いつものルール</b><small>1〜12 の12枚・空札なし</small></span></label>
+          <label class="rule-choice"><input type="radio" name="rule" value="blank">
+            <span><b>空札あり</b><small>1〜13 を読む・6枚ずつ配り、1枚は空札</small></span></label>
         </div>
-        <label class="row check"><input type="checkbox" name="blankRule"><span>空札のルールで遊ぶ（読みは変わらず、記録と表示に残ります）</span></label>
-        <p class="help" id="deckHelp"></p>
+        <details class="other-rules" id="otherRules">
+          <summary>ほかの遊び方</summary>
+          <label class="rule-choice"><input type="radio" name="rule" value="redblack">
+            <span><b>赤と黒</b><small>赤の1〜6と黒の1〜6の12枚・最後の音の高さで色を伝える</small></span></label>
+        </details>
       </fieldset>
 
       <fieldset class="group">
-        <legend>電子音の間隔 t</legend>
-        <div class="seg seg-wrap" role="radiogroup" aria-label="間隔 t">
-          <label><input type="radio" name="tChoice" value="0.1"><span>0.1</span></label>
-          <label><input type="radio" name="tChoice" value="0.2"><span>0.2</span></label>
-          <label><input type="radio" name="tChoice" value="0.4"><span>0.4</span></label>
-          <label><input type="radio" name="tChoice" value="0.8"><span>0.8</span></label>
-          <label><input type="radio" name="tChoice" value="1.6"><span>1.6</span></label>
-          <label><input type="radio" name="tChoice" value="custom"><span>自由</span></label>
-          <label><input type="radio" name="tChoice" value="random"><span>ゲームごとに無作為</span></label>
-        </div>
-        <label class="row" id="customTRow"><span class="row-label">自由な値</span>
-          <span class="row-ctrl"><input type="number" name="tCustom" step="0.01" min="0.05" max="3" inputmode="decimal"> 秒</span>
-        </label>
-        <label class="row"><span class="row-label">準備音から最初の音まで</span>
-          <span class="row-ctrl"><input type="number" name="prepGapSec" step="0.1" min="0.3" max="3" inputmode="decimal"> 秒</span>
-        </label>
-        <p class="help">単位は秒です。読んでいる途中のゲームには反映せず、次のゲームから使います（まだ1枚も読んでいなければ、すぐに反映します）。</p>
-      </fieldset>
-
-      <fieldset class="group">
-        <legend>音</legend>
-        <label class="row"><span class="row-label">音量</span>
-          <span class="row-ctrl grow"><input type="range" name="volume" min="0" max="1" step="0.05"></span>
-        </label>
-        <div class="row"><button id="btnSoundCheck" type="button" class="btn-secondary">音の確認</button>
-          <ul id="soundCheckLegend" class="check-legend"></ul>
+        <legend>電子音の間隔</legend>
+        <div class="seg seg-wrap speed-seg" role="radiogroup" aria-label="電子音の間隔" id="speedSeg"></div>
+        <p class="help">電子音の鳴り始めから次の鳴り始めまでの秒数です。</p>
+        <div class="row"><button id="btnSoundCheck" type="button" class="btn-secondary">音を確かめる</button>
+          <span class="help" id="soundCheckHelp">準備音、ふつうの音、最後の高い音の順に鳴ります。</span>
         </div>
       </fieldset>
-
-      <fieldset class="group">
-        <legend>点滅と表示（記録の撮影用）</legend>
-        <label class="row check"><input type="checkbox" name="flash"><span>音に合わせて画面全体を点滅させる</span></label>
-        <label class="row check"><input type="checkbox" name="flashKindColor"><span>最後の点滅を種類の色にする（種類が2つ以上のとき）</span></label>
-        <label class="row"><span class="row-label">点滅の遅れの補正</span>
-          <span class="row-ctrl"><input type="number" name="flashOffsetMs" step="5" min="-300" max="500" inputmode="numeric"> ミリ秒</span>
-        </label>
-        <p class="help">準備音は灰、通常の音は白、最後の音は朱（種類があるときは種類の色）で光ります。外付けのスピーカで音が遅れて聞こえるときは、補正を正の値にします。</p>
-        <label class="row check"><input type="checkbox" name="bigInfo"><span>ゲームの番号と t を大きく表示する</span></label>
-      </fieldset>
-
-      <fieldset class="group">
-        <legend>運営者</legend>
-        <label class="row"><span class="row-label">記録の見出し</span>
-          <span class="row-ctrl grow"><input type="text" name="label" maxlength="60" placeholder="例：12/13 晴れる屋 A卓"></span>
-        </label>
-        <label class="row"><span class="row-label">次のゲームの番号</span>
-          <span class="row-ctrl"><input type="number" name="nextGameNo" min="1" step="1" inputmode="numeric"></span>
-        </label>
-        <div class="row buttons">
-          <button id="btnExportJson" type="button" class="btn-secondary">JSON で書き出す</button>
-          <button id="btnExportCsv" type="button" class="btn-secondary">CSV で書き出す</button>
-          <button id="btnClearLog" type="button" class="btn-danger">記録を消す</button>
-        </div>
-        <p id="logInfo" class="help"></p>
-        <ol id="logList" class="log-list" reversed></ol>
-      </fieldset>
+      <p class="help" id="applyHelp"></p>
     </div>
     <div class="sheet-foot">
       <button type="button" class="btn-ghost" data-close>やめる</button>
-      <button type="submit" class="btn-primary" id="btnSaveSettings">保存</button>
+      <button type="submit" class="btn-primary" id="btnSaveSettings">決める</button>
     </div>
   </form>
 </dialog>
@@ -242,7 +194,7 @@
 <dialog id="dlgConfirm" class="sheet small" aria-labelledby="confirmTitle">
   <div class="sheet-body">
     <h2 id="confirmTitle">いまのゲームを打ち切りますか</h2>
-    <p id="confirmText">まだ読んでいない札があります。打ち切って新しいゲームを始めると、いまのゲームは途中までの記録として残ります。</p>
+    <p id="confirmText">まだ読んでいない札があります。</p>
   </div>
   <div class="sheet-foot">
     <button type="button" class="btn-ghost" data-close>続ける</button>
