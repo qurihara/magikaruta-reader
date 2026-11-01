@@ -129,15 +129,17 @@ CSV の列は次のとおりです。
 
 ## 配信の仕方
 
-ES モジュール（`<script type="module">`）を使うので、`file://` では動きません。ローカルのサーバか静的な配信に置いてください。
+このアプリは GitHub Pages から配信している。スマートフォンでもパソコンでも、次の URL を開けば使える。
+
+https://unryu.org/majikaruta-reader/
+
+ES モジュール（`<script type="module">`）を使うので、`file://` では動かない。手元で動かすときは、このフォルダでローカルのサーバを起こす。
 
 ```
-cd /Users/kurihara/Library/CloudStorage/GoogleDrive-qurihara@gmail.com/マイドライブ/share/google_desktop_share/事務汎用フォルダ/nakayama-ws-experiment-2026/majikaruta-reader
 python3 -m http.server 8797
 ```
 
-そのうえで http://localhost:8797/ を開きます。スマートフォンで使うには、GitHub Pages などの HTTPS の静的な配信に置きます（Wake Lock は HTTPS でしか働きません）。
-事務汎用フォルダの `.claude/launch.json` に `majikaruta-reader`（ポート 8797）の設定があります。
+そのうえで http://localhost:8797/ を開く。Wake Lock（画面を消さない機能）は HTTPS でしか働かないので、スマートフォンでは GitHub Pages の URL を使う。
 
 ## 検査
 
