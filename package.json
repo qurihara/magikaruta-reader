@@ -1,0 +1,11 @@
+{
+  "name": "majikaruta-reader",
+  "version": "0.1.0",
+  "private": true,
+  "description": "まじかるたの読み上げアプリ。依存するパッケージは無く、ビルド工程も無い。版の数字の正本は js/config.js の APP_VERSION。",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "serve": "python3 -m http.server 8797"
+  }
+}
