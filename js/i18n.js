@@ -127,7 +127,7 @@ const JA = {
 
   // 遊び方
   "rules.title": "遊び方",
-  "rules.video.html": "ルールを映像でも説明しています（3分、音が出ます）。<a href=\"video/majikaruta-rules.mp4\" target=\"_blank\" rel=\"noopener\">ルール紹介の映像を見る</a>",
+  "rules.video.html": "ルールを映像でも説明しています（3分、音が出ます）。<a href=\"video/magikaruta-rules.mp4\" target=\"_blank\" rel=\"noopener\">ルール紹介の映像を見る</a>",
   "rules.tab.basic": "いつものルール",
   "rules.tab.blank": "空札あり",
   "rules.tab.t": "電子音の間隔",
@@ -276,7 +276,7 @@ const EN = {
 
   // How to play
   "rules.title": "How to play",
-  "rules.video.html": "A video explains the rules too (3 min, with sound). <a href=\"video/majikaruta-rules.mp4\" target=\"_blank\" rel=\"noopener\">Rules video (in Japanese)</a>",
+  "rules.video.html": "A video explains the rules too (3 min, with sound). <a href=\"video/magikaruta-rules.mp4\" target=\"_blank\" rel=\"noopener\">Rules video (in Japanese)</a>",
   "rules.tab.basic": "Standard",
   "rules.tab.blank": "Dead card",
   "rules.tab.t": "Beep interval",

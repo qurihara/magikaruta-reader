@@ -255,6 +255,7 @@ node --test test/*.test.js
 
 ## 変更履歴
 
+- v0.7.0（2026-11-02）：ルール紹介の映像のファイル名を、英語表記の MagiKaruta に合わせて video/magikaruta-rules.mp4 に替え、遊び方のリンク（日本語と英語）を直した。映像の URL は https://unryu.org/magikaruta-reader/video/magikaruta-rules.mp4 になった。
 - v0.6.0（2026-11-02）：ルール紹介の映像（video/majikaruta-rules.mp4）を、画面とクレジットに出る読み上げアプリの URL を https://unryu.org/magikaruta-reader/ に直して書き出し直したものに差し替えた。映像の長さ（2分59.7秒）、大きさ（1280×720）、ファイルの名前は前と同じである。
 - v0.5.0（2026-11-02）：英語表記を MagiKaruta に決めたのに合わせて、リポジトリの名前を majikaruta-reader から magikaruta-reader に替え、配信の URL を https://unryu.org/magikaruta-reader/ にした。古い URL は使えない。保存の鍵、IndexedDB の名前、書き出すファイルの名前の頭（majikaruta-lab など）は、監督者の端末に保存した記録を読めるように、元のままにした。
 - v0.4.0（2026-11-02）：公開版に英語版（MagiKaruta Reader）を足した。最初の画面と本体の画面の下の欄に「日本語」と「English」のボタンを置き、選んだ言語を保存する。言語は ?lang=、保存した選択、端末の言語の順に決める。画面の文言を js/i18n.js の辞書に移し、test/i18n.test.js で訳し漏れを検査する。
