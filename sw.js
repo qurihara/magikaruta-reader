@@ -7,7 +7,7 @@
 // 外部の書体（Google Fonts）は写さない。読めなくても、端末の書体で崩れずに表示する。
 // ==========================
 
-const CACHE = "majikaruta-reader-v0.2.1";
+const CACHE = "majikaruta-reader-v0.2.2";
 const FILES = [
   "./",
   "index.html",

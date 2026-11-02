@@ -4,7 +4,8 @@
 // 公開版（index.html）の画面の操作とゲームの進行。使う人の体験を重視して簡素にしてある。
 // 研究用の機能（カメラ用の全画面の点滅、点滅の遅れの補正、記録の保存と書き出し、条件の管理）は、実験用のページ（lab.html、lab-app.js）にだけある。
 // 音は audio.js、点滅は flash.js、計算は core.js、設定の保存は storage.js が受け持つ。
-// 読んでいる最中と読む前には、札の値を画面に出さない。値を出すのは「答えを確かめる」を長押ししたときだけである。
+// 読んでいる最中と読む前には、札の値を画面に出さない。直前の読みの値を出すのは「答えを確かめる」を長押ししたときだけである。
+// 本体の画面には、読まれた札の履歴を常に出す（v0.2.2）。ただし直前の読みは、次の「読む」を押すか、長押しで答えを見るまで履歴に載せない。
 // ==========================
 
 import {
@@ -12,6 +13,7 @@ import {
 } from "./config.js";
 import {
   normalizePublicSettings, ruleOf, buildReadingOrder, glowSpecFor, ctxToPerf, formatT, speedWord, kindLabel, cardFace,
+  buildHistoryView,
 } from "./core.js";
 import { unlockAudio, audioState, setVolume, scheduleRead, stopAll, playSoundCheck } from "./audio.js";
 import { createFlasher } from "./flash.js";
@@ -28,7 +30,9 @@ let settings = normalizePublicSettings(store.loadSettings());
 store.saveSettings(settings);
 store.removeLegacyKeys();
 
-let game = null;      // { rule, order, reads: [{ value, kind }] }
+// lastShown は、直前の読みを履歴に載せてよいかどうか。長押しで答えを見たら true にし、次を読んだら false に戻す。
+// 次を読んだ時点で、それまでの読みはすべて履歴に載る（buildHistoryView が、最後の1つを除いて載せる）。
+let game = null;      // { rule, order, reads: [{ value, kind }], lastShown }
 let reading = false;
 let readEndTimer = 0;
 const VOLUME = 0.7;
@@ -48,7 +52,7 @@ const glow = createFlasher({
 
 function newGame() {
   const rule = ruleOf(settings.rule);
-  game = { rule: rule.key, order: buildReadingOrder(rule), reads: [] };
+  game = { rule: rule.key, order: buildReadingOrder(rule), reads: [], lastShown: false };
   render();
 }
 
@@ -80,6 +84,8 @@ async function readOnce() {
   setVolume(VOLUME);
   const sched = scheduleRead({ count: card.value, kind: card.kind, tSec: settings.tSec, prepGapSec: PREP_GAP_SEC });
   game.reads.push({ value: card.value, kind: card.kind });
+  // いま読む札は、次を読むか答えを見るまで履歴に載せない。1つ前の読みは、ここで履歴に載る。
+  game.lastShown = false;
   reading = true;
   render();
 
@@ -130,14 +136,7 @@ function render() {
   $("readCount").textContent = n;
   $("totalCount").textContent = total;
 
-  // 読んだ札の数だけ、札の裏（常磐色）を並べる。値は出さない。
-  const slots = $("slots");
-  if (slots.childElementCount !== total) {
-    slots.replaceChildren(...Array.from({ length: total }, () => document.createElement("i")));
-  }
-  Array.from(slots.children).forEach((el, i) => {
-    el.className = i < n - (reading ? 1 : 0) ? "done" : (reading && i === n - 1 ? "now" : "");
-  });
+  renderHistory(rule);
 
   const done = n >= total;
   const btn = $("btnRead");
@@ -161,6 +160,91 @@ function render() {
   }
   $("btnReveal").disabled = reading || n === 0;
   $("btnNewGame").disabled = reading;
+}
+
+// 読まれた札の履歴を描く。札の並びと読んだ順の列の両方を、core.js の buildHistoryView の結果から作る。
+function renderHistory(rule) {
+  const view = buildHistoryView({ rule, reads: game.reads, lastShown: game.lastShown });
+  const board = $("histBoard");
+  // 幅の狭い電話では、種類が1つのルールの札を2段に折り返す（--cols-half）。折り返す幅は style.css で決める。
+  board.style.setProperty("--cols", String(view.columns));
+  board.style.setProperty("--cols-half", String(Math.ceil(view.columns / 2)));
+  board.classList.toggle("is-kinds", view.rows.length > 1);
+  board.replaceChildren(...view.rows.map((row) => {
+    const rowEl = document.createElement("div");
+    rowEl.className = "hist-row";
+    rowEl.dataset.kind = KIND_DEFS[row.kind].key;
+    if (row.label) {
+      const lab = document.createElement("span");
+      lab.className = "hist-row-label";
+      lab.textContent = row.label;
+      rowEl.append(lab);
+    }
+    const cells = document.createElement("ol");
+    cells.className = "hist-cells";
+    cells.append(...row.cells.map((c) => {
+      const li = document.createElement("li");
+      li.className = "hist-cell";
+      if (c.order) li.classList.add("is-read");
+      if (c.latest) li.classList.add("is-latest");
+      const num = document.createElement("span");
+      num.className = "hist-num";
+      num.textContent = c.value;
+      li.append(num);
+      if (c.order) {
+        const ord = document.createElement("span");
+        ord.className = "hist-ord";
+        ord.textContent = c.order;
+        li.append(ord);
+      }
+      li.setAttribute("aria-label", `${row.label}${c.value}：${c.order ? `${c.order}番目に読んだ` : "まだ読んでいない"}`);
+      return li;
+    }));
+    rowEl.append(cells);
+    return rowEl;
+  }));
+
+  // 読んだ順の数字の列（例：7 → 3 → 11）。まだ載せていない直前の読みは「？」で示す。
+  const seq = $("histSeq");
+  const items = view.sequence.map((s) => {
+    const b = document.createElement("b");
+    b.textContent = s.label;
+    if (rule.kinds > 1) b.dataset.kind = KIND_DEFS[s.kind].key;
+    return b;
+  });
+  if (view.pending) {
+    const q = document.createElement("b");
+    q.className = "hist-pending";
+    q.textContent = "？";
+    q.setAttribute("aria-label", "直前の読み（まだ載せていない）");
+    items.push(q);
+  }
+  if (items.length === 0) {
+    const empty = document.createElement("span");
+    empty.className = "hist-empty";
+    empty.textContent = "まだありません";
+    seq.replaceChildren(empty);
+  } else {
+    const parts = [];
+    items.forEach((el, i) => {
+      if (i > 0) {
+        const arrow = document.createElement("span");
+        arrow.className = "hist-arrow";
+        arrow.textContent = "→";
+        arrow.setAttribute("aria-hidden", "true");
+        parts.push(arrow);
+      }
+      parts.push(el);
+    });
+    seq.replaceChildren(...parts);
+  }
+  seq.classList.toggle("is-reading", reading);
+
+  const note = $("histNote");
+  note.hidden = !view.pending;
+  note.textContent = game.reads.length >= game.order.length
+    ? "最後の読みは、答えを確かめると加わります。"
+    : "直前の読みは、次を読むか、答えを確かめると加わります。";
 }
 
 // --------------------------
@@ -189,6 +273,9 @@ function showReveal() {
     return li;
   }));
   $("reveal").hidden = false;
+  // 答えを見たので、直前の読みを履歴に載せる。
+  game.lastShown = true;
+  render();
   clearTimeout(revealTimer);
   revealTimer = setTimeout(hideReveal, REVEAL_SHOW_MS);
 }

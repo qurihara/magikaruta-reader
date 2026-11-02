@@ -60,7 +60,13 @@
 
   <section class="progress" aria-live="polite">
     <p class="count"><span class="count-label">読んだ札</span><span id="readCount" class="count-num">0</span><span class="count-of">／<span id="totalCount">12</span>枚</span></p>
-    <div id="slots" class="slots" aria-hidden="true"></div>
+    <!-- 読まれた札の履歴。そのゲームの全部の値を並べ、読まれた札を薄くして、読まれた順の番号を添える。
+         直前の読みは、次の「読む」を押すか、「答えを確かめる」で答えを見るまで載せない（app.js の renderHistory）。 -->
+    <div id="history" class="history" role="group" aria-label="読まれた札の履歴">
+      <div id="histBoard" class="hist-board"></div>
+      <p class="hist-seq"><span class="hist-seq-key">読んだ順</span><span id="histSeq" class="hist-seq-list"></span></p>
+      <p id="histNote" class="hist-note" hidden>直前の読みは、次を読むか、答えを確かめると加わります。</p>
+    </div>
     <p id="statusText" class="status">「読む」を押すと、準備音のあとに電子音が鳴ります。</p>
     <p id="mainNotice" class="notice" hidden></p>
   </section>

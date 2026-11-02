@@ -6,7 +6,7 @@
 // このファイルはブラウザと node --test の両方から読み込むので、DOM に触れない。
 // ==========================
 
-export const APP_VERSION = "0.2.1";
+export const APP_VERSION = "0.2.2";
 
 // --------------------------
 // 電子音の間隔 t
@@ -153,8 +153,9 @@ export const FLASH = {
 // 読み終えてから次の読みを受け付けるまでの間（秒）。最後の音が鳴り終わるのを待つ。
 export const AFTER_READ_SEC = 0.35;
 
-// 答えの確認の長押しの時間（ミリ秒）。
-export const REVEAL_HOLD_MS = 900;
+// 答えの確認の長押しの時間（ミリ秒）。公開版と実験用のページの両方が、ui.js の setupHold にこの値を渡す。
+// v0.2.2 で、長すぎるという栗原さんの指摘を受けて 900 から半分の 450 にした。短く押しただけでは答えを出さない。
+export const REVEAL_HOLD_MS = 450;
 // 答えを表示しておく時間（ミリ秒）。画面を触れば早く消せる。
 export const REVEAL_SHOW_MS = 8000;
 

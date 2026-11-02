@@ -237,6 +237,94 @@ button:disabled { opacity: .45; }
 .slots i.done { background: var(--tokiwa); border-color: var(--tokiwa); }
 .slots i.now { border-color: var(--shu); background: var(--shu-soft); animation: breathe 1.2s ease-in-out infinite; }
 @keyframes breathe { 50% { transform: translateY(-3px); } }
+/* ---------- 読まれた札の履歴（公開版、v0.2.2） ----------
+   そのゲームの全部の値を小さな取り札の形で並べる。まだ読まれていない札は札の表のまま、読まれた札は薄くして、
+   右上に読まれた順の番号を朱で添える。最も新しく履歴に載った札は、朱の縁で示す。
+   種類が1つのルールは、幅の狭い電話では2段に折り返し、広い画面では1段に並べる。赤と黒は色ごとに1段ずつ並べる。 */
+.history { display: flex; flex-direction: column; gap: 6px; }
+.hist-board { display: flex; flex-direction: column; gap: 5px; }
+.hist-row { display: flex; align-items: center; gap: 6px; }
+.hist-row-label {
+  flex: none;
+  width: 1.7em; height: 1.7em;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  font-size: .78rem; font-weight: 700;
+  color: #fff7ea;
+  background: var(--shu);
+}
+.hist-row[data-kind="black"] .hist-row-label { background: var(--ink); color: var(--paper); }
+.hist-cells {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--cols-half, 6), minmax(0, 1fr));
+  gap: 5px;
+  margin: 0; padding: 0; list-style: none;
+}
+.hist-board.is-kinds .hist-cells { grid-template-columns: repeat(var(--cols, 6), minmax(0, 1fr)); }
+@media (min-width: 480px) {
+  .hist-cells { grid-template-columns: repeat(var(--cols, 12), minmax(0, 1fr)); }
+}
+.hist-cell {
+  position: relative;
+  height: 36px;
+  display: grid; place-items: center;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(60,40,10,.08);
+  transition: background-color .25s, border-color .25s, opacity .25s;
+}
+.hist-num {
+  font-family: var(--mincho);
+  font-weight: 800;
+  font-size: 1.12rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.hist-row[data-kind="red"] .hist-num { color: var(--shu); }
+.hist-board:not(.is-kinds) .hist-row .hist-num { color: var(--ink); }
+.hist-cell.is-read {
+  background: color-mix(in srgb, var(--paper-2) 70%, transparent);
+  border-style: dashed;
+  box-shadow: none;
+}
+.hist-cell.is-read .hist-num { opacity: .35; }
+.hist-ord {
+  position: absolute;
+  top: -6px; right: -5px;
+  min-width: 1.35em; height: 1.35em;
+  padding: 0 .2em;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  font-size: .66rem; font-weight: 700; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--shu);
+  background: var(--card);
+  border: 1px solid var(--shu);
+}
+.hist-cell.is-latest { border-color: var(--shu); border-style: solid; }
+.hist-cell.is-latest .hist-ord { color: #fff7ea; background: var(--shu); }
+.hist-seq { margin: 2px 0 0; display: flex; align-items: baseline; gap: .6em; font-size: .9rem; line-height: 1.5; }
+.hist-seq-key { flex: none; font-size: .78rem; color: var(--ink-soft); letter-spacing: .12em; }
+.hist-seq-list { display: flex; flex-wrap: wrap; align-items: baseline; gap: .1em .35em; min-width: 0; }
+.hist-seq-list b { font-family: var(--mincho); font-weight: 800; font-variant-numeric: tabular-nums; }
+.hist-seq-list b[data-kind="red"] { color: var(--shu); }
+.hist-arrow { color: var(--ink-soft); font-size: .8em; }
+.hist-pending {
+  min-width: 1.6em;
+  text-align: center;
+  color: var(--shu);
+  border: 1px dashed var(--shu);
+  border-radius: 4px;
+  font-family: var(--gothic) !important;
+  font-size: .85em;
+}
+.hist-seq-list.is-reading .hist-pending { background: var(--shu-soft); animation: breathe 1.2s ease-in-out infinite; }
+.hist-empty { color: var(--ink-soft); font-size: .85rem; }
+.hist-note { margin: 0; font-size: .76rem; color: var(--ink-soft); }
+
 .status { margin: 0; min-height: 3.2em; color: var(--ink-soft); font-size: .95rem; }
 .notice {
   margin: 0;
@@ -320,7 +408,7 @@ button:disabled { opacity: .45; }
 .hold-text { position: relative; font-weight: 500; }
 .hold-hint { position: relative; font-size: .72rem; color: var(--ink-soft); letter-spacing: .08em; }
 .hold-fill { position: absolute; inset: 0; background: var(--shu-soft); transform-origin: left; transform: scaleX(0); }
-.btn-hold.holding .hold-fill { transform: scaleX(1); transition: transform var(--hold-ms, 900ms) linear; }
+.btn-hold.holding .hold-fill { transform: scaleX(1); transition: transform var(--hold-ms, 450ms) linear; }
 .sub-controls .btn-secondary { min-height: 52px; }
 
 .foot { display: flex; justify-content: flex-end; }
@@ -456,10 +544,21 @@ input[type="range"] { accent-color: var(--tokiwa); }
 .speed-legend { padding-left: 1.4em; }
 
 @media (prefers-reduced-motion: reduce) {
-  .slots i.now, .read-card.is-reading::after { animation: none; }
+  .slots i.now, .read-card.is-reading::after, .hist-seq-list.is-reading .hist-pending { animation: none; }
 }
 
 /* 横長の画面（PC など）では、札とボタンの比率を少し落ち着かせる。 */
 @media (min-width: 720px) and (min-height: 700px) {
   .app { padding-top: 24px; gap: 18px; }
+}
+
+/* 背の低い電話（iPhone SE など）では、履歴と状態の文を詰めて、「読む」と「答えを確かめる」が1画面に収まるようにする（v0.2.2）。
+   同じ指定より後に効かせるため、このファイルの末尾に置く。 */
+@media (max-height: 720px) {
+  .app { gap: 8px; }
+  .status { font-size: .88rem; }
+  .hist-cell { height: 30px; }
+  .hist-num { font-size: 1rem; }
+  .hist-seq { font-size: .84rem; line-height: 1.4; }
+  .read-card { min-height: clamp(150px, 25vh, 260px); }
 }

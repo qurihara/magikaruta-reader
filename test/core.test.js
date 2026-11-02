@@ -7,7 +7,7 @@ import {
   csvEscape, kindLabel, cardFace, toneIntervalsMs, formatT, speedWord, clampNumber,
 } from "../js/core.js";
 import {
-  T_LEVELS, DEFAULT_PUBLIC_SETTINGS, RULES, RULE_KEYS, KIND_DEFS, FLASH, AUDIO, APP_VERSION, SPEED_WORDS,
+  REVEAL_HOLD_MS, T_LEVELS, DEFAULT_PUBLIC_SETTINGS, RULES, RULE_KEYS, KIND_DEFS, FLASH, AUDIO, APP_VERSION, SPEED_WORDS,
 } from "../js/config.js";
 
 test("版の数字は x.y.z の形", () => {
@@ -171,4 +171,8 @@ test("記録から求めた電子音の間隔は t に一致する", () => {
   const d = toneIntervalsMs({ events });
   assert.equal(d.length, 6);
   for (const x of d) assert.ok(Math.abs(x - 200) < 1e-6);
+});
+
+test("答えの確認の長押しの時間は約0.45秒（v0.2.2 で 0.9 秒から半分にした）", () => {
+  assert.equal(REVEAL_HOLD_MS, 450);
 });

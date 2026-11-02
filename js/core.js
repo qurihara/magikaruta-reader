@@ -2,7 +2,7 @@
 // core.js
 // ==========================
 // 画面にも音にも触れない、純粋な関数を集める。公開版と実験用のページの両方が使う。node --test で検査する（test/core.test.js）。
-// 読む順の生成、公開版の設定の正規化、電子音の時刻表の計算、点滅の色、CSV の値の囲みを扱う。
+// 読む順の生成、公開版の設定の正規化、読まれた札の履歴の組み立て、電子音の時刻表の計算、点滅の色、CSV の値の囲みを扱う。
 // 実験用のページだけが使う処理（条件の袋、記録の組み立て、状態の復元）は lab-core.js にある。
 // ==========================
 
@@ -111,6 +111,59 @@ export function kindLabel(kind, kinds) {
 // 値をトランプの表記でも示す。1 → "A"、11 → "J"、12 → "Q"、13 → "K"、それ以外は空文字。
 export function cardFace(value) {
   return { 1: "A", 11: "J", 12: "Q", 13: "K" }[value] || "";
+}
+
+// --------------------------
+// 読まれた札の履歴（公開版の本体の画面に常に出す）
+// --------------------------
+
+// 履歴に載せてよい読みの数を返す。reads はこのゲームの読みの一覧、lastShown は直前の読みを見せてよいかどうか。
+// 直前の読みは、次の「読む」を押すか「答えを確かめる」で答えを見るまで、履歴に載せない（答えが画面に出ると遊びにならない）。
+export function shownReadCount(reads, lastShown) {
+  const n = Array.isArray(reads) ? reads.length : 0;
+  if (n === 0) return 0;
+  return lastShown ? n : n - 1;
+}
+
+// 履歴の表示に使う印の一覧を作る。
+// rule は RULES の定義、reads は読んだ順の [{ value, kind }]、lastShown は直前の読みを見せてよいかどうか。
+// 返り値：
+//   rows     … 種類ごとの札の並び。各要素は { kind, label, cells }。cells の各要素は
+//              { value, kind, order, latest }。order は読まれた順（1から）で、まだ読まれていない札は 0。
+//              latest は、履歴に載せた読みのうち最も新しい札かどうか。
+//   sequence … 履歴に載せた読みを、読んだ順に並べたもの。各要素は { value, kind, order, label }。
+//   pending  … まだ履歴に載せていない直前の読みがあるかどうか。
+//   columns  … 1段に並べる札の数（値の数）。
+// 同じ札（同じ値と種類の組）が reads に2回あっても、最初の1回だけを数える（読み直しで二重に数えない）。
+// ルールの範囲の外の値や種類は無視する。
+export function buildHistoryView({ rule, reads = [], lastShown = false }) {
+  const kinds = Math.max(1, rule.kinds || 1);
+  const shownCount = shownReadCount(reads, lastShown);
+  const orderOf = new Map();
+  const sequence = [];
+  for (let i = 0; i < shownCount; i++) {
+    const r = reads[i] || {};
+    const value = Number(r.value);
+    const kind = Number(r.kind) || 0;
+    if (!Number.isInteger(value) || value < 1 || value > rule.maxValue) continue;
+    if (kind < 0 || kind >= kinds) continue;
+    const key = `${kind}:${value}`;
+    if (orderOf.has(key)) continue;
+    const order = sequence.length + 1;
+    orderOf.set(key, order);
+    sequence.push({ value, kind, order, label: `${kindLabel(kind, kinds)}${value}` });
+  }
+  const latestKey = sequence.length ? `${sequence[sequence.length - 1].kind}:${sequence[sequence.length - 1].value}` : "";
+  const rows = [];
+  for (let kind = 0; kind < kinds; kind++) {
+    const cells = [];
+    for (let value = 1; value <= rule.maxValue; value++) {
+      const key = `${kind}:${value}`;
+      cells.push({ value, kind, order: orderOf.get(key) || 0, latest: key === latestKey });
+    }
+    rows.push({ kind, label: kindLabel(kind, kinds), cells });
+  }
+  return { rows, sequence, pending: reads.length > shownCount, columns: rule.maxValue };
 }
 
 // --------------------------
