@@ -7,7 +7,7 @@
 // 外部の書体（Google Fonts）は写さない。読めなくても、端末の書体で崩れずに表示する。
 // ==========================
 
-const CACHE = "majikaruta-reader-v0.2.0";
+const CACHE = "majikaruta-reader-v0.2.1";
 const FILES = [
   "./",
   "index.html",
@@ -41,6 +41,9 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin) return;
+  // 映像（video/ の下）は写さず、ブラウザにそのまま任せる。映像は範囲の要求（206 の応答）で届き、
+  // 写しに入れられないうえ、容量も大きいからである（v0.2.1 で足した）。
+  if (new URL(req.url).pathname.includes("/video/")) return;
   event.respondWith(
     fetch(req)
       .then((res) => {
