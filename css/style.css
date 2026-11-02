@@ -563,3 +563,46 @@ input[type="range"] { accent-color: var(--tokiwa); }
   .hist-seq { font-size: .84rem; line-height: 1.4; }
   .read-card { min-height: clamp(150px, 25vh, 260px); }
 }
+
+/* ---------- 言語の切り替え（v0.4.0） ----------
+   最初の画面の右上と、本体の画面の下の欄に置く小さな2つのボタン。選んでいるほうを墨で塗る。 */
+.i18n-pending body { visibility: hidden; }
+.lang-switch { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--card); }
+.lang-btn {
+  min-height: 36px; padding: 0 .9em;
+  border: none; background: transparent; color: var(--ink-soft);
+  font-size: .82rem; letter-spacing: .02em;
+}
+.lang-btn + .lang-btn { border-left: 1px solid var(--line); }
+.lang-btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); font-weight: 700; }
+.splash-lang { position: absolute; top: calc(12px + env(safe-area-inset-top)); right: 16px; }
+.foot { justify-content: space-between; align-items: center; gap: 12px; }
+.foot-lang .lang-btn { min-height: 32px; font-size: .76rem; padding: 0 .75em; }
+
+/* 英語の画面。日本語のために広く取った字間を詰め、長い語が収まるようにする。 */
+:lang(en) .splash-kicker { letter-spacing: .04em; font-size: .9rem; }
+:lang(en) .splash-title { letter-spacing: .01em; font-size: clamp(2.4rem, 12.5vw, 4.6rem); }
+:lang(en) .splash-sub { letter-spacing: .3em; }
+:lang(en) .brand-name { letter-spacing: .01em; }
+:lang(en) .brand-sub { letter-spacing: .08em; }
+:lang(en) .read-label { letter-spacing: .02em; text-indent: 0; }
+:lang(en) .read-card.is-done .read-label { letter-spacing: 0; }
+:lang(en) .sheet-head h2, :lang(en) .group legend { letter-spacing: .02em; }
+:lang(en) .plate-key, :lang(en) .count-label, :lang(en) .hist-seq-key, :lang(en) .reveal-hist-title { letter-spacing: .04em; }
+:lang(en) .hist-row-label { width: 3.4em; border-radius: 999px; }
+:lang(en) .plate-name { white-space: normal; }
+:lang(en) .splash-sub { text-indent: .3em; }
+/* 右上の言語の切り替えと、最初の画面の中身が重ならないように、上の余白を広げる。 */
+.splash { padding-top: calc(64px + env(safe-area-inset-top)); }
+/* 英語では右上のボタンの文言（How to play、Rules & speed）が長いので、幅の狭い電話では印を外し、題名とボタンを少し小さくする。
+   さらに狭い電話では題名も外し、ボタンが重ならないようにする。 */
+@media (max-width: 420px) {
+  :lang(en) .seal { display: none; }
+  :lang(en) .brand-name { font-size: 1.08rem; }
+  :lang(en) .top-actions { gap: 6px; }
+  :lang(en) .top-actions .btn-ghost { font-size: .82rem; padding: .4em .6em; }
+}
+@media (max-width: 350px) {
+  :lang(en) .brand { display: none; }
+  :lang(en) .top { justify-content: flex-end; }
+}

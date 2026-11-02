@@ -7,8 +7,9 @@
 // ==========================
 
 import {
-  DEFAULT_PUBLIC_SETTINGS, RULES, RULE_KEYS, T_LEVELS, SPEED_WORDS, AUDIO, FLASH, KIND_DEFS,
+  DEFAULT_PUBLIC_SETTINGS, RULES, RULE_KEYS, T_LEVELS, AUDIO, FLASH, KIND_DEFS,
 } from "./config.js";
+import { translate } from "./i18n.js";
 
 // --------------------------
 // 乱数
@@ -58,9 +59,10 @@ export function formatT(t) {
   return String(roundT(t));
 }
 
-// t に添える速さの言葉。5水準でなければ空文字。
-export function speedWord(t) {
-  return SPEED_WORDS[roundT(t)] || "";
+// t に添える速さの言葉。5水準でなければ空文字。言葉は i18n.js の辞書（speed.<t>）から、lang の言語で引く。
+export function speedWord(t, lang = "ja") {
+  const r = roundT(t);
+  return T_LEVELS.includes(r) ? translate(lang, `speed.${r}`) : "";
 }
 
 // --------------------------
@@ -82,6 +84,14 @@ export function ruleOf(key) {
   return RULES[key] || RULES.standard;
 }
 
+// ルールの画面に出す名前と要約。文言は i18n.js の辞書（rule.<key>.name、rule.<key>.summary）にある。
+export function ruleName(key, lang = "ja") {
+  return translate(lang, `rule.${ruleOf(key).key}.name`);
+}
+export function ruleSummary(key, lang = "ja") {
+  return translate(lang, `rule.${ruleOf(key).key}.summary`);
+}
+
 // --------------------------
 // 札と読む順
 // --------------------------
@@ -101,11 +111,17 @@ export function buildReadingOrder(rule, rng = Math.random) {
   return shuffle(buildDeck(rule), rng);
 }
 
-// 種類の呼び名。種類が1つなら空文字、2つなら「赤」「黒」。
-export function kindLabel(kind, kinds) {
+// 種類の呼び名。種類が1つなら空文字、2つなら「赤」「黒」（英語では Red、Black）。
+export function kindLabel(kind, kinds, lang = "ja") {
   if (kinds <= 1) return "";
   const def = KIND_DEFS[kind];
-  return def ? def.name : "";
+  return def ? translate(lang, `kind.${def.key}`) : "";
+}
+
+// 札の呼び名。種類が1つなら値だけ（"7"）、2つなら種類を添える（日本語は "赤7"、英語は "Red 7"）。
+export function cardLabel(value, kind, kinds, lang = "ja") {
+  const kl = kindLabel(kind, kinds, lang);
+  return kl ? translate(lang, "card.withKind", { kind: kl, value }) : String(value);
 }
 
 // 値をトランプの表記でも示す。1 → "A"、11 → "J"、12 → "Q"、13 → "K"、それ以外は空文字。
@@ -136,7 +152,8 @@ export function shownReadCount(reads, lastShown) {
 //   columns  … 1段に並べる札の数（値の数）。
 // 同じ札（同じ値と種類の組）が reads に2回あっても、最初の1回だけを数える（読み直しで二重に数えない）。
 // ルールの範囲の外の値や種類は無視する。
-export function buildHistoryView({ rule, reads = [], lastShown = false }) {
+// lang は札の呼び名（label）の言語。省くと日本語。
+export function buildHistoryView({ rule, reads = [], lastShown = false, lang = "ja" }) {
   const kinds = Math.max(1, rule.kinds || 1);
   const shownCount = shownReadCount(reads, lastShown);
   const orderOf = new Map();
@@ -151,7 +168,7 @@ export function buildHistoryView({ rule, reads = [], lastShown = false }) {
     if (orderOf.has(key)) continue;
     const order = sequence.length + 1;
     orderOf.set(key, order);
-    sequence.push({ value, kind, order, label: `${kindLabel(kind, kinds)}${value}` });
+    sequence.push({ value, kind, order, label: cardLabel(value, kind, kinds, lang) });
   }
   const latestKey = sequence.length ? `${sequence[sequence.length - 1].kind}:${sequence[sequence.length - 1].value}` : "";
   const rows = [];
@@ -161,7 +178,7 @@ export function buildHistoryView({ rule, reads = [], lastShown = false }) {
       const key = `${kind}:${value}`;
       cells.push({ value, kind, order: orderOf.get(key) || 0, latest: key === latestKey });
     }
-    rows.push({ kind, label: kindLabel(kind, kinds), cells });
+    rows.push({ kind, label: kindLabel(kind, kinds, lang), cells });
   }
   return { rows, sequence, pending: reads.length > shownCount, columns: rule.maxValue };
 }

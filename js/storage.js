@@ -1,7 +1,7 @@
 // ==========================
 // storage.js
 // ==========================
-// 公開版（index.html）の localStorage への保存と読み出し。公開版は設定（ルールと電子音の間隔）だけを保存し、
+// 公開版（index.html）の localStorage への保存と読み出し。公開版は設定（ルールと電子音の間隔）と、画面の言語（v0.4.0）だけを保存し、
 // ゲームの記録は残さない。プライベートブラウズなどで使えない場合も、アプリは動き続ける。すべての読み書きを try/catch で包む。
 // 実験用のページの保存は lab-storage.js が受け持つ。
 // ==========================
@@ -9,6 +9,7 @@
 import { STORAGE_PREFIX, LEGACY_STORAGE_PREFIX } from "./config.js";
 
 const SETTINGS_KEY = STORAGE_PREFIX + "settings";
+const LANG_KEY = STORAGE_PREFIX + "lang";
 
 export function loadSettings() {
   try {
@@ -25,6 +26,24 @@ export function loadSettings() {
 export function saveSettings(s) {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ rule: s.rule, tSec: s.tSec }));
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+// 画面の言語（"ja" か "en"）。読めなければ null を返し、呼び出し元が端末の言語から決める。
+export function loadLang() {
+  try {
+    return localStorage.getItem(LANG_KEY);
+  } catch (_) {
+    return null;
+  }
+}
+
+export function saveLang(lang) {
+  try {
+    localStorage.setItem(LANG_KEY, lang);
     return true;
   } catch (_) {
     return false;

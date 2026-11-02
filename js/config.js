@@ -6,7 +6,7 @@
 // このファイルはブラウザと node --test の両方から読み込むので、DOM に触れない。
 // ==========================
 
-export const APP_VERSION = "0.3.0";
+export const APP_VERSION = "0.4.0";
 
 // --------------------------
 // 電子音の間隔 t
@@ -19,14 +19,7 @@ export const T_LEVELS = [0.1, 0.2, 0.4, 0.8, 1.6];
 export const T_MIN = 0.05;
 export const T_MAX = 3.0;
 
-// 公開版で t の5水準に添える、速さの言葉。
-export const SPEED_WORDS = {
-  0.1: "とても速い",
-  0.2: "速い",
-  0.4: "ふつう",
-  0.8: "ゆっくり",
-  1.6: "とてもゆっくり",
-};
+// 公開版で t の5水準に添える速さの言葉（とても速い〜とてもゆっくり）は、日本語と英語の両方を i18n.js の辞書に置く（v0.4.0）。
 
 // 準備音の鳴り始めから最初の電子音の鳴り始めまでの間（秒）。公開版はこの値に固定する。
 export const PREP_GAP_SEC = 1.0;
@@ -42,31 +35,26 @@ export const LEGACY_STORAGE_PREFIX = "majikaruta-reader:v1:";
 
 // 公開版のルール。値の範囲と札の種類の数を、ここで決める。
 // 赤と黒は「ほかの遊び方」として目立たない位置に置く（other: true）。
+// ルールの名前と要約の文言は、日本語と英語の両方を i18n.js の辞書（rule.<key>.name、rule.<key>.summary）に置く（v0.4.0）。
 export const RULES = {
   standard: {
     key: "standard",
-    name: "いつものルール",
     maxValue: 12,
     kinds: 1,
     blank: false,
-    summary: "1〜12 の12枚・空札なし",
   },
   blank: {
     key: "blank",
-    name: "空札あり",
     maxValue: 13,
     kinds: 1,
     blank: true,
-    summary: "1〜13 を読む・6枚ずつ配り、1枚は空札",
   },
   redblack: {
     key: "redblack",
-    name: "赤と黒",
     maxValue: 6,
     kinds: 2,
     blank: false,
     other: true,
-    summary: "赤の1〜6と黒の1〜6の12枚・最後の音の高さで色を伝える",
   },
 };
 export const RULE_KEYS = ["standard", "blank", "redblack"];
@@ -129,10 +117,10 @@ export const AUDIO = {
 
 // 札の種類。公開版の「赤と黒」で使う。種類が1つのルールでは、最後の音は赤（高い音）の定義を使う。
 // 赤の札は通常の音の1オクターブ上、黒の札は1オクターブ下で終わる。
-// color はカメラ用の点滅の色、ink は画面の文字の色である。黒の札は黒では点滅させられないので、藍の青で点滅させる。
+// color はカメラ用の点滅の色、ink は画面の文字の色である。種類の呼び名（赤、黒）は i18n.js の辞書（kind.<key>）に置く（v0.4.0）。黒の札は黒では点滅させられないので、藍の青で点滅させる。
 export const KIND_DEFS = [
-  { key: "red",   name: "赤", lastHz: 1760, wave: "sine", gainScale: 1.0, color: "#ff2a12", ink: "#c8321e" },
-  { key: "black", name: "黒", lastHz: 440,  wave: "sine", gainScale: 1.0, color: "#1e50ff", ink: "#2b2723" },
+  { key: "red",   lastHz: 1760, wave: "sine", gainScale: 1.0, color: "#ff2a12", ink: "#c8321e" },
+  { key: "black", lastHz: 440,  wave: "sine", gainScale: 1.0, color: "#1e50ff", ink: "#2b2723" },
 ];
 
 // --------------------------

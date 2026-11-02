@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" class="i18n-pending">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,8 +7,11 @@
 <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#171512" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="description" content="まじかるたの読み上げアプリ。電子音の回数で札の値を、最後の高い音で読みの終わりを伝えます。">
-<title>まじかるた 読み上げ</title>
+<!-- 画面の文言は js/i18n.js の辞書にあり、app.js が data-i18n（textContent）、data-i18n-html（HTML）、
+     data-i18n-attr（「属性:鍵」を「;」で区切る）の印を見て差し替える。差し替えるまでは画面を隠す（i18n-pending）。
+     title と description だけは、JavaScript を動かさないリンクの下見のために、日本語と英語を並べた固定の文も書いておく。 -->
+<meta name="description" content="まじかるたの読み上げアプリ / MagiKaruta Reader: beeps tell you the number on the card." data-i18n-attr="content:meta.description">
+<title data-i18n="meta.title">まじかるた 読み上げ / MagiKaruta Reader</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
@@ -19,15 +22,20 @@
 
 <!-- 最初の画面。ここでのタップで AudioContext を起こし、画面の消灯を止める。 -->
 <section id="splash" class="splash" aria-labelledby="splashTitle">
+  <!-- 言語の切り替え。押すとその場で全部の文言が切り替わる（v0.4.0）。ボタンの文字は、それぞれの言語の名前で固定する。 -->
+  <div class="lang-switch splash-lang" role="group" data-i18n-attr="aria-label:lang.group">
+    <button type="button" class="lang-btn" data-lang="ja" lang="ja">日本語</button>
+    <button type="button" class="lang-btn" data-lang="en" lang="en">English</button>
+  </div>
   <div class="splash-inner">
-    <p class="splash-kicker">ことばを外し、戦略を残す</p>
-    <h1 id="splashTitle" class="splash-title">まじかるた</h1>
-    <p class="splash-sub">読み上げ</p>
-    <p class="splash-lead">読み手の代わりに電子音を鳴らします。鳴った回数が読まれた札の値で、最後の1回だけ高い音です。</p>
-    <button id="btnStart" class="btn-primary btn-start" type="button">はじめる</button>
+    <p class="splash-kicker" data-i18n="splash.kicker"></p>
+    <h1 id="splashTitle" class="splash-title" data-i18n="app.name"></h1>
+    <p class="splash-sub" data-i18n="app.sub"></p>
+    <p class="splash-lead" data-i18n="splash.lead"></p>
+    <button id="btnStart" class="btn-primary btn-start" type="button" data-i18n="splash.start"></button>
     <ul class="splash-notes">
-      <li id="noteSilent"><strong>iPhone・iPad</strong>：本体の消音スイッチ（着信／消音）を切り、音量ボタンで音量を上げてください。消音のままだと電子音が鳴らないことがあります。</li>
-      <li>画面が消えないようにします（対応していない端末では、画面の自動消灯の設定を長めにしてください）。</li>
+      <li id="noteSilent" data-i18n-html="splash.silent.html"></li>
+      <li data-i18n="splash.wake"></li>
     </ul>
     <p class="splash-version"><span id="splashVersion" class="version">v0.0.0</span></p>
   </div>
@@ -37,124 +45,102 @@
   <header class="top">
     <div class="brand">
       <span class="seal" aria-hidden="true">読</span>
-      <span class="brand-name">まじかるた<span class="brand-sub">読み上げ</span></span>
+      <span class="brand-name"><span data-i18n="app.name"></span><span class="brand-sub" data-i18n="app.sub"></span></span>
     </div>
     <nav class="top-actions">
-      <button id="btnRules" class="btn-ghost" type="button">遊び方</button>
-      <button id="btnSettings" class="btn-ghost" type="button">ルールと速さ</button>
+      <button id="btnRules" class="btn-ghost" type="button" data-i18n="top.rules"></button>
+      <button id="btnSettings" class="btn-ghost" type="button" data-i18n="top.settings"></button>
     </nav>
   </header>
 
   <!-- いまのルールと速さ。押すと「ルールと速さ」を開く。 -->
-  <button id="plate" class="plate plate-public" type="button" aria-label="ルールと速さを変える">
+  <button id="plate" class="plate plate-public" type="button" data-i18n-attr="aria-label:plate.aria">
     <span class="plate-cell">
-      <span class="plate-key">ルール</span>
-      <span class="plate-name" id="infoRule">いつものルール</span>
-      <span class="plate-note" id="infoRuleNote">1〜12 の12枚・空札なし</span>
+      <span class="plate-key" data-i18n="plate.rule"></span>
+      <span class="plate-name" id="infoRule"></span>
+      <span class="plate-note" id="infoRuleNote"></span>
     </span>
     <span class="plate-cell">
-      <span class="plate-key">電子音の間隔</span>
-      <span class="plate-name" id="infoSpeed">ふつう</span>
-      <span class="plate-note"><span id="infoT">0.4</span> 秒ごと</span>
+      <span class="plate-key" data-i18n="plate.speed"></span>
+      <span class="plate-name" id="infoSpeed"></span>
+      <span class="plate-note" id="infoT"></span>
     </span>
   </button>
 
   <section class="progress" aria-live="polite">
-    <p class="count"><span class="count-label">読んだ札</span><span id="readCount" class="count-num">0</span><span class="count-of">／<span id="totalCount">12</span>枚</span></p>
+    <p class="count"><span class="count-label" data-i18n="count.label"></span><span id="readCount" class="count-num">0</span><span class="count-of" id="totalCount"></span></p>
     <!-- 読まれた札の履歴。そのゲームの全部の値を並べ、読まれた札を薄くして、読まれた順の番号を添える。
          直前の読みは、次の「読む」を押すか、「答えを確かめる」で答えを見るまで載せない（app.js の renderHistory）。 -->
-    <div id="history" class="history" role="group" aria-label="読まれた札の履歴">
+    <div id="history" class="history" role="group" data-i18n-attr="aria-label:hist.aria">
       <div id="histBoard" class="hist-board"></div>
-      <p class="hist-seq"><span class="hist-seq-key">読んだ順</span><span id="histSeq" class="hist-seq-list"></span></p>
-      <p id="histNote" class="hist-note" hidden>直前の読みは、次を読むか、答えを確かめると加わります。</p>
+      <p class="hist-seq"><span class="hist-seq-key" data-i18n="hist.seqKey"></span><span id="histSeq" class="hist-seq-list"></span></p>
+      <p id="histNote" class="hist-note" hidden></p>
     </div>
-    <p id="statusText" class="status">「読む」を押すと、準備音のあとに電子音が鳴ります。</p>
+    <p id="statusText" class="status"></p>
     <p id="mainNotice" class="notice" hidden></p>
   </section>
 
   <section class="controls">
     <button id="btnRead" class="read-card" type="button">
       <span class="read-glow" aria-hidden="true"></span>
-      <span class="read-label" id="readLabel">読む</span>
-      <span class="read-sub" id="readSub">1枚目</span>
+      <span class="read-label" id="readLabel"></span>
+      <span class="read-sub" id="readSub"></span>
     </button>
     <div class="sub-controls">
       <button id="btnReveal" class="btn-hold" type="button" aria-describedby="revealHint">
         <span class="hold-fill" aria-hidden="true"></span>
-        <span class="hold-text">答えを確かめる</span>
-        <span id="revealHint" class="hold-hint">長押し</span>
+        <span class="hold-text" data-i18n="reveal.button"></span>
+        <span id="revealHint" class="hold-hint" data-i18n="reveal.hint"></span>
       </button>
-      <button id="btnNewGame" class="btn-secondary" type="button">新しいゲーム</button>
+      <button id="btnNewGame" class="btn-secondary" type="button" data-i18n="newGame.button"></button>
     </div>
   </section>
 
-  <footer class="foot"><span id="version" class="version">v0.0.0</span></footer>
+  <!-- 下の欄に、最初の画面に戻らずに言語を切り替えるボタンを小さく置く（v0.4.0）。 -->
+  <footer class="foot">
+    <div class="lang-switch foot-lang" role="group" data-i18n-attr="aria-label:lang.group">
+      <button type="button" class="lang-btn" data-lang="ja" lang="ja">日本語</button>
+      <button type="button" class="lang-btn" data-lang="en" lang="en">English</button>
+    </div>
+    <span id="version" class="version">v0.0.0</span>
+  </footer>
 </div>
 
 <!-- 答えの表示（長押ししたときだけ）。 -->
 <div id="reveal" class="reveal" hidden role="dialog" aria-modal="true" aria-labelledby="revealTitle">
   <div class="reveal-card">
-    <p id="revealTitle" class="reveal-title">直前の読み</p>
+    <p id="revealTitle" class="reveal-title" data-i18n="reveal.titleDefault"></p>
     <p class="reveal-value"><span id="revealValue">7</span><span id="revealFace" class="reveal-face"></span></p>
     <p id="revealKind" class="reveal-kind"></p>
-    <p class="reveal-hist-title">このゲームで読んだ順</p>
+    <p class="reveal-hist-title" data-i18n="reveal.histTitle"></p>
     <ol id="revealHistory" class="reveal-hist"></ol>
-    <p class="reveal-close">画面を触ると閉じます</p>
+    <p class="reveal-close" data-i18n="reveal.closeHint"></p>
   </div>
 </div>
 
 <!-- 遊び方 -->
 <dialog id="dlgRules" class="sheet" aria-labelledby="rulesTitle">
   <div class="sheet-head">
-    <h2 id="rulesTitle">遊び方</h2>
-    <button class="btn-ghost" type="button" data-close>閉じる</button>
+    <h2 id="rulesTitle" data-i18n="rules.title"></h2>
+    <button class="btn-ghost" type="button" data-close data-i18n="common.close"></button>
   </div>
   <div class="sheet-body prose">
-    <p class="aside">ルールを映像でも説明しています（3分、音が出ます）。<a href="video/majikaruta-rules.mp4" target="_blank" rel="noopener">ルール紹介の映像を見る</a></p>
+    <p class="aside" data-i18n-html="rules.video.html"></p>
     <div class="tabs" role="tablist">
-      <button role="tab" type="button" class="tab" aria-selected="true" data-tab="r-basic">いつものルール</button>
-      <button role="tab" type="button" class="tab" aria-selected="false" data-tab="r-blank">空札あり</button>
-      <button role="tab" type="button" class="tab" aria-selected="false" data-tab="r-t">電子音の間隔</button>
-      <button role="tab" type="button" class="tab" aria-selected="false" data-tab="r-redblack">赤と黒</button>
+      <button role="tab" type="button" class="tab" aria-selected="true" data-tab="r-basic" data-i18n="rules.tab.basic"></button>
+      <button role="tab" type="button" class="tab" aria-selected="false" data-tab="r-blank" data-i18n="rules.tab.blank"></button>
+      <button role="tab" type="button" class="tab" aria-selected="false" data-tab="r-t" data-i18n="rules.tab.t"></button>
+      <button role="tab" type="button" class="tab" aria-selected="false" data-tab="r-redblack" data-i18n="rules.tab.redblack"></button>
     </div>
-    <section id="r-basic" class="tabpanel">
-      <h3>いつものルール（1〜12、空札なし）</h3>
-      <ol>
-        <li>1から12の数字が書かれた札を12枚用意します（トランプの A〜Q でも遊べます）。</li>
-        <li>よく混ぜて配ります。2人なら6枚ずつです。数字を表にして、自分の前に並べます（自陣）。相手の手が届く位置に置きます。</li>
-        <li>最初の音が鳴るまでは、手を札に乗せずに待ちます。</li>
-        <li>「読む」を押すと、準備音のあとに「ピン」が1〜12回鳴ります。最後の1回だけ高い音です。鳴った回数と同じ数字の札を取ります。</li>
-        <li>先に札に触れた人がその札を取ります。相手の陣の札を取ったら、自分の陣の札を1枚相手に送ります。</li>
-        <li>自分の陣の札が先に無くなった人の勝ちです。アプリは同じ値を2回読みません。</li>
-      </ol>
-      <p class="aside">同時に触れたときは、その札が置かれていた陣の人の取りとします。どちらが先かは、遊ぶ人どうしで決めます。</p>
-    </section>
-    <section id="r-blank" class="tabpanel" hidden>
-      <h3>空札あり（1〜13を読む）</h3>
-      <p>使わない札（空札）を混ぜると、「残りの札を全部払えば取れる」場面が減り、最後の音まで聞く駆け引きが増えます。</p>
-      <ol>
-        <li>1から13の札を13枚用意し、よく混ぜて2人に6枚ずつ配ります。</li>
-        <li>残った1枚は、誰にも見せずに伏せたまま脇へ置きます。これが空札です。</li>
-        <li>アプリは、どの値が空札かを知りません。13の値をすべて、無作為の順に読みます。</li>
-        <li>空札の値が読まれたら、誰も札に触れてはいけません。触れたらお手つきで、相手から札を1枚送られます。</li>
-      </ol>
-    </section>
+    <section id="r-basic" class="tabpanel" data-i18n-html="rules.basic.html"></section>
+    <section id="r-blank" class="tabpanel" hidden data-i18n-html="rules.blank.html"></section>
     <section id="r-t" class="tabpanel" hidden>
-      <h3>電子音の間隔</h3>
-      <p>電子音の鳴り始めから次の鳴り始めまでの秒数を、「ルールと速さ」で5つから選べます。</p>
+      <h3 data-i18n="rules.t.title"></h3>
+      <p data-i18n="rules.t.lead"></p>
       <ul id="speedLegend" class="speed-legend"></ul>
-      <p>間隔が長いほど、音を数えながら候補の札へ手を動かす余裕が生まれます。短いと、最後の音を聞いてから取る勝負に近づきます。</p>
+      <p data-i18n="rules.t.after"></p>
     </section>
-    <section id="r-redblack" class="tabpanel" hidden>
-      <h3>赤と黒（ほかの遊び方）</h3>
-      <p>赤の1〜6と黒の1〜6の、12枚で遊びます（トランプの♥と♠の A〜6 でも遊べます）。同じ数字の札が、赤と黒の2枚ずつあります。</p>
-      <p>鳴った回数で数字を、最後の音の高さで色を聞き分けて取ります。</p>
-      <ul class="kind-legend">
-        <li style="--kind: #c8321e"><span class="sw"></span><b>赤</b><span class="d">最後の音が高い（ふつうの音の1オクターブ上）</span></li>
-        <li style="--kind: #2b2723"><span class="sw"></span><b>黒</b><span class="d">最後の音が低い（ふつうの音の1オクターブ下）</span></li>
-      </ul>
-      <p>最後の音が鳴るまでは色が分からないので、数字が絞れても、まだ取れないことがあります。「ルールと速さ」の「音を確かめる」で、2つの音を聞き比べられます。</p>
-    </section>
+    <section id="r-redblack" class="tabpanel" hidden data-i18n-html="rules.redblack.html"></section>
   </div>
 </dialog>
 
@@ -162,38 +148,38 @@
 <dialog id="dlgSettings" class="sheet" aria-labelledby="settingsTitle">
   <form id="settingsForm" method="dialog">
     <div class="sheet-head">
-      <h2 id="settingsTitle">ルールと速さ</h2>
-      <button class="btn-ghost" type="button" data-close>閉じる</button>
+      <h2 id="settingsTitle" data-i18n="settings.title"></h2>
+      <button class="btn-ghost" type="button" data-close data-i18n="common.close"></button>
     </div>
     <div class="sheet-body">
       <fieldset class="group">
-        <legend>ルール</legend>
+        <legend data-i18n="settings.rules"></legend>
         <div class="rule-choices">
           <label class="rule-choice"><input type="radio" name="rule" value="standard">
-            <span><b>いつものルール</b><small>1〜12 の12枚・空札なし</small></span></label>
+            <span><b data-i18n="rule.standard.name"></b><small data-i18n="rule.standard.summary"></small></span></label>
           <label class="rule-choice"><input type="radio" name="rule" value="blank">
-            <span><b>空札あり</b><small>1〜13 を読む・6枚ずつ配り、1枚は空札</small></span></label>
+            <span><b data-i18n="rule.blank.name"></b><small data-i18n="rule.blank.summary"></small></span></label>
         </div>
         <details class="other-rules" id="otherRules">
-          <summary>ほかの遊び方</summary>
+          <summary data-i18n="settings.other"></summary>
           <label class="rule-choice"><input type="radio" name="rule" value="redblack">
-            <span><b>赤と黒</b><small>赤の1〜6と黒の1〜6の12枚・最後の音の高さで色を伝える</small></span></label>
+            <span><b data-i18n="rule.redblack.name"></b><small data-i18n="rule.redblack.summary"></small></span></label>
         </details>
       </fieldset>
 
       <fieldset class="group">
-        <legend>電子音の間隔</legend>
-        <div class="seg seg-wrap speed-seg" role="radiogroup" aria-label="電子音の間隔" id="speedSeg"></div>
-        <p class="help">電子音の鳴り始めから次の鳴り始めまでの秒数です。</p>
-        <div class="row"><button id="btnSoundCheck" type="button" class="btn-secondary">音を確かめる</button>
-          <span class="help" id="soundCheckHelp">準備音、ふつうの音、最後の高い音の順に鳴ります。</span>
+        <legend data-i18n="settings.speed"></legend>
+        <div class="seg seg-wrap speed-seg" role="radiogroup" data-i18n-attr="aria-label:settings.speed" id="speedSeg"></div>
+        <p class="help" data-i18n="settings.speedHelp"></p>
+        <div class="row"><button id="btnSoundCheck" type="button" class="btn-secondary" data-i18n="settings.soundCheck"></button>
+          <span class="help" id="soundCheckHelp"></span>
         </div>
       </fieldset>
       <p class="help" id="applyHelp"></p>
     </div>
     <div class="sheet-foot">
-      <button type="button" class="btn-ghost" data-close>やめる</button>
-      <button type="submit" class="btn-primary" id="btnSaveSettings">決める</button>
+      <button type="button" class="btn-ghost" data-close data-i18n="settings.cancel"></button>
+      <button type="submit" class="btn-primary" id="btnSaveSettings" data-i18n="settings.save"></button>
     </div>
   </form>
 </dialog>
@@ -201,12 +187,12 @@
 <!-- 新しいゲームの確認 -->
 <dialog id="dlgConfirm" class="sheet small" aria-labelledby="confirmTitle">
   <div class="sheet-body">
-    <h2 id="confirmTitle">いまのゲームを打ち切りますか</h2>
-    <p id="confirmText">まだ読んでいない札があります。</p>
+    <h2 id="confirmTitle" data-i18n="confirm.title"></h2>
+    <p id="confirmText" data-i18n="confirm.textDefault"></p>
   </div>
   <div class="sheet-foot">
-    <button type="button" class="btn-ghost" data-close>続ける</button>
-    <button type="button" class="btn-primary" id="btnConfirmNew">打ち切って新しいゲーム</button>
+    <button type="button" class="btn-ghost" data-close data-i18n="confirm.keep"></button>
+    <button type="button" class="btn-primary" id="btnConfirmNew" data-i18n="confirm.new"></button>
   </div>
 </dialog>
 

@@ -7,7 +7,7 @@ import {
   csvEscape, kindLabel, cardFace, toneIntervalsMs, formatT, speedWord, clampNumber,
 } from "../js/core.js";
 import {
-  REVEAL_HOLD_MS, T_LEVELS, DEFAULT_PUBLIC_SETTINGS, RULES, RULE_KEYS, KIND_DEFS, FLASH, AUDIO, APP_VERSION, SPEED_WORDS,
+  REVEAL_HOLD_MS, T_LEVELS, DEFAULT_PUBLIC_SETTINGS, RULES, RULE_KEYS, KIND_DEFS, FLASH, AUDIO, APP_VERSION,
 } from "../js/config.js";
 
 test("版の数字は x.y.z の形", () => {
@@ -69,7 +69,10 @@ test("速さの言葉は5水準に1つずつある", () => {
   for (const t of T_LEVELS) assert.ok(speedWord(t).length > 0);
   assert.equal(speedWord(0.4), "ふつう");
   assert.equal(speedWord(0.33), "");
-  assert.equal(Object.keys(SPEED_WORDS).length, T_LEVELS.length);
+  assert.equal(new Set(T_LEVELS.map((t) => speedWord(t))).size, T_LEVELS.length);
+  // 英語の言葉（v0.4.0）
+  assert.deepEqual(T_LEVELS.map((t) => speedWord(t, "en")), ["Very fast", "Fast", "Normal", "Slow", "Very slow"]);
+  assert.equal(speedWord(0.33, "en"), "");
 });
 
 test("読む順は全部の札を1回ずつ含み、同じ札を2回読まない", () => {
@@ -150,6 +153,9 @@ test("種類の呼び名とトランプの表記", () => {
   assert.equal(kindLabel(0, 1), "");
   assert.equal(kindLabel(0, 2), "赤");
   assert.equal(kindLabel(1, 2), "黒");
+  assert.equal(kindLabel(0, 2, "en"), "Red");
+  assert.equal(kindLabel(1, 2, "en"), "Black");
+  assert.equal(kindLabel(0, 1, "en"), "");
   assert.equal(cardFace(1), "A");
   assert.equal(cardFace(13), "K");
   assert.equal(cardFace(7), "");
