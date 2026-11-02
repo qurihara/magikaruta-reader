@@ -7,7 +7,7 @@
 // 外部の書体（Google Fonts）は写さない。読めなくても、端末の書体で崩れずに表示する。
 // ==========================
 
-const CACHE = "majikaruta-reader-v0.2.2";
+const CACHE = "majikaruta-reader-v0.3.0";
 const FILES = [
   "./",
   "index.html",
@@ -44,8 +44,11 @@ self.addEventListener("fetch", (event) => {
   // 映像（video/ の下）は写さず、ブラウザにそのまま任せる。映像は範囲の要求（206 の応答）で届き、
   // 写しに入れられないうえ、容量も大きいからである（v0.2.1 で足した）。
   if (new URL(req.url).pathname.includes("/video/")) return;
+  // cache: "no-cache" で、ブラウザの手元のファイルを使う前に毎回サーバへ新しい版があるかを確かめさせる。
+  // 確かめずに手元のファイルを使うと、版の切り替わりの直後に、新しい index.html と古い app.js が組み合わさって
+  // 起動できないことがあった（v0.2.2 を出した直後に起きた。v0.3.0 で直した）。
   event.respondWith(
-    fetch(req)
+    fetch(req, { cache: "no-cache" })
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();

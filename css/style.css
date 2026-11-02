@@ -413,6 +413,7 @@ button:disabled { opacity: .45; }
 
 .foot { display: flex; justify-content: flex-end; }
 .version { font-size: .72rem; color: var(--ink-soft); letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+.splash-version { margin: 1.2rem 0 0; text-align: center; }
 
 /* ---------- 答えの表示 ---------- */
 .reveal {

@@ -401,6 +401,7 @@ function setupControls() {
 
 function boot() {
   $("version").textContent = `v${APP_VERSION}`;
+  $("splashVersion").textContent = `v${APP_VERSION}`;
   if (!isApple() && !isTouch()) $("noteSilent").hidden = true;
   buildSpeedChoices();
   newGame();

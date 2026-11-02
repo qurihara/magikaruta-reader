@@ -1,6 +1,6 @@
 {
   "name": "majikaruta-reader",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "private": true,
   "description": "まじかるたの読み上げアプリ（公開版 index.html と実験用のページ lab.html）。依存するパッケージは無く、ビルド工程も無い。版の数字の正本は js/config.js の APP_VERSION。",
   "type": "module",
