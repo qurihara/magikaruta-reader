@@ -1,4 +1,4 @@
-# まじかるた 読み上げ（majikaruta-reader） / MagiKaruta Reader
+# まじかるた 読み上げ（magikaruta-reader） / MagiKaruta Reader
 
 カードゲーム「まじかるた」で、読み手の代わりに電子音を鳴らすウェブアプリです。
 「読む」を押すと準備音が鳴り、そのあと「ピン」という電子音が札の値の回数だけ鳴ります。最後の1回だけ高い音になるので、遊ぶ人はそこで読みの終わりを知ります。
@@ -14,10 +14,10 @@
 
 このリポジトリには、目的の違う2つのページがあります。音と点滅の部品と純粋な関数は2つのページで共有し、画面の処理と保存の仕方は分けてあります。
 
-- **公開版**（`index.html`）：https://unryu.org/majikaruta-reader/
+- **公開版**（`index.html`）：https://unryu.org/magikaruta-reader/
   遊ぶ人のためのページです。使う人の体験を重視して簡素にしてあり、研究用の機能は出しません。
   端末に保存するものは、選んだルールと電子音の間隔だけです。ゲームの記録は残しません。
-- **実験用のページ**（`lab.html`）：https://unryu.org/majikaruta-reader/lab.html
+- **実験用のページ**（`lab.html`）：https://unryu.org/magikaruta-reader/lab.html
   実験の当日に、監督者が1台の端末（ノートPCかタブレット）で、読み上げと進行管理をまとめて行うページです。
   条件（電子音の間隔 t と空札の有無）を無作為の順に回し、ゲームと読みと音の時刻を記録し、天井のカメラとの同期のために画面を点滅させます。
   公開版からは辿れないようにしてあります（実験用のページの下にだけ、公開版への案内があります）。
@@ -28,7 +28,7 @@
 ## 英語版（English）
 
 公開版の画面は、日本語と英語の2つの言語で表示できます（v0.4.0）。英語の題名は「MagiKaruta」、副題は「Reader」です。
-English speakers can open the English version directly: https://unryu.org/majikaruta-reader/?lang=en
+English speakers can open the English version directly: https://unryu.org/magikaruta-reader/?lang=en
 
 - **切り替え方**：最初の画面の右上と、本体の画面の下の欄に、「日本語」と「English」の小さな2つのボタンがあります。押すとその場で全部の文言が切り替わります。
 - **言語の決め方**：アプリは、次の順に言語を決めます。
@@ -217,8 +217,8 @@ iPhone の Safari では、最初の画面のボタンのタップで AudioConte
 
 このアプリは GitHub Pages から配信しています。
 
-- 公開版：https://unryu.org/majikaruta-reader/
-- 実験用のページ：https://unryu.org/majikaruta-reader/lab.html
+- 公開版：https://unryu.org/magikaruta-reader/
+- 実験用のページ：https://unryu.org/magikaruta-reader/lab.html
 
 ES モジュール（`<script type="module">`）を使うので、`file://` では動きません。手元で動かすときは、このフォルダでローカルのサーバを起こし、http://localhost:8797/ を開きます。
 
@@ -255,9 +255,10 @@ node --test test/*.test.js
 
 ## 変更履歴
 
+- v0.5.0（2026-11-02）：英語表記を MagiKaruta に決めたのに合わせて、リポジトリの名前を majikaruta-reader から magikaruta-reader に替え、配信の URL を https://unryu.org/magikaruta-reader/ にした。古い URL は使えない。保存の鍵、IndexedDB の名前、書き出すファイルの名前の頭（majikaruta-lab など）は、監督者の端末に保存した記録を読めるように、元のままにした。
 - v0.4.0（2026-11-02）：公開版に英語版（MagiKaruta Reader）を足した。最初の画面と本体の画面の下の欄に「日本語」と「English」のボタンを置き、選んだ言語を保存する。言語は ?lang=、保存した選択、端末の言語の順に決める。画面の文言を js/i18n.js の辞書に移し、test/i18n.test.js で訳し漏れを検査する。
 - v0.3.0（2026-11-02）：最初の画面のボタンを「はじめる」にし、最初の画面にも版を出した。版の切り替わりの直後に、新しい index.html と手元に残っていた古い app.js が組み合わさって起動できない不具合が起きたので、サービスワーカーが毎回サーバに新しい版を確かめる（cache: "no-cache"）ようにした。この版から、変更のたびにマイナーの版を上げる。
 - v0.2.2（2026-11-02）：公開版の本体の画面に、読まれた札の履歴を常に出すようにした。そのゲームの全部の値（いつものルールは 1〜12、空札ありは 1〜13、赤と黒は赤と黒の2段）を小さな札で並べ、読まれた札を薄くして読まれた順の番号を添え、あわせて読んだ順の数字の列（例：7 → 3 → 11）を出す。答えが画面に出ないように、直前の読みは、次の「読む」を押すか「答えを確かめる」を長押しした時点で履歴に加える。新しいゲームでは履歴を空にする。履歴の組み立ては core.js の buildHistoryView に置き、test/history.test.js で検査する。読んだ枚数を札の裏の数で示していた並びは、この履歴に置き換えた。あわせて、「答えを確かめる」の長押しの時間を約0.9秒から約0.45秒に半分にした（公開版と実験用のページの両方。短く押しただけでは答えを出さない）。
-- v0.2.1（2026-11-02）：ルール紹介の映像（video/majikaruta-rules.mp4、2分59.7秒、1280×720）を入れ、公開版の「遊び方」の先頭から映像へのリンクを張った。GitHub Pages が https://unryu.org/majikaruta-reader/video/majikaruta-rules.mp4 からこの映像を配信する。サービスワーカーは映像を写さないようにした。
+- v0.2.1（2026-11-02）：ルール紹介の映像（video/majikaruta-rules.mp4、2分59.7秒、1280×720）を入れ、公開版の「遊び方」の先頭から映像へのリンクを張った。GitHub Pages が https://unryu.org/magikaruta-reader/video/majikaruta-rules.mp4 からこの映像を配信する。サービスワーカーは映像を写さないようにした。
 - v0.2.0（2026-11-02）：公開版と実験用のページに分けた。公開版のルールを3つ（いつものルール、空札あり、赤と黒）と電子音の間隔の5水準に絞り、公開版から記録と研究用の表示を外して、音に合わせた控えめな点滅を足した。実験用のページ（lab.html）を新しく作り、条件の袋による無作為の順、やり直し、取り消し、後回し、手動の指定、読み直し、止める操作、3つの終え方、操作のたびの保存と再読み込みからの復元、JSON の書き出しと読み込み、音ごととゲームごとの CSV、卓と名札とメモ、カメラ用の点滅、空札のルールの表示を入れた。オフラインで開き直せるようにサービスワーカーを足した。
 - v0.1.0（2026-11-02）：最初の版。現行ルール、値の範囲 1〜N、空札の印、2〜4種類、t の5水準と自由な値とゲームごとの無作為、点滅、大きな番号の表示、記録の JSON と CSV の書き出し、長押しの答えの確認。
